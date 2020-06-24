@@ -1,0 +1,18 @@
+﻿################################################################################
+# Il file gitignore è stato creato automaticamente da Microsoft(R) Visual Studio.
+################################################################################
+
+/Desktop/SecretPassword/Entities/bin/Debug
+/Desktop/SecretPassword/Entities/obj/Debug
+/Desktop/SecretPassword/Entities/Properties
+/Desktop/SecretPassword/Models/bin/Debug
+/Desktop/SecretPassword/Models/obj/Debug
+/Desktop/SecretPassword/Models/Properties
+/Desktop/SecretPassword/.vs/SecretPassword/v15/Server/sqlite3
+/Desktop/SecretPassword/.vs/SecretPassword/v15
+/Desktop/SecretPassword/Business/bin/Debug
+/Desktop/SecretPassword/Business/obj/Debug
+/Desktop/SecretPassword/Business/Properties
+/Desktop/SecretPassword/SecretPassword/bin/Debug
+/Desktop/SecretPassword/SecretPassword/obj/Debug
+/Desktop/SecretPassword/SecretPassword/Properties

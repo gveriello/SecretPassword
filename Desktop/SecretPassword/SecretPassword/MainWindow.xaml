@@ -1,0 +1,166 @@
+﻿<Window x:Class="SecretPassword.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SecretPassword"
+        mc:Ignorable="d"
+        Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="800">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="7*" />
+        </Grid.ColumnDefinitions>
+        <DockPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top"  Grid.ColumnSpan="2" >
+            <ToolBarTray DockPanel.Dock="Top">
+                <ToolBar>
+                    <Button IsEnabled="False" Foreground="Black" Content="Gestione gruppi" />
+                    <Separator />
+                    <Button x:Name="btnGroupAdd" Click="BtnGroupAdd_Click" Content="Aggiungi" />
+                    <Button x:Name="btnGroupModify" Click="BtnGroupModify_Click" IsEnabled="{Binding IsGroupSelected}" Content="Modifica" />
+                    <Button x:Name="btnGroupRemove" Click="BtnGroupRemove_Click" IsEnabled="{Binding IsGroupSelected}" Content="Elimina" />
+                </ToolBar>
+                <ToolBar>
+                    <Button IsEnabled="False" Foreground="Black" Content="Gestione credenziali" />
+                    <Separator />
+                    <Button x:Name="btnCredentialAdd" Click="BtnCredentialAdd_Click" Content="Aggiungi" />
+                    <Button x:Name="btnCredentialModify" Click="BtnCredentialModify_Click" IsEnabled="{Binding IsCredentialSelected}" Content="Modifica" />
+                    <Button x:Name="btnCredentialRemove" Click="BtnCredentialRemove_Click" IsEnabled="{Binding IsCredentialSelected}" Content="Elimina" />
+                    <Button x:Name="btnCredentialShare" Click="BtnCredentialShare_Click" IsEnabled="{Binding IsCredentialSelected}" Content="Condividi" />
+                    <Button x:Name="btnCredentialImport" Click="BtnCredentialImport_Click" Content="Importa" />
+                </ToolBar>
+                <ToolBar>
+                    <Button IsEnabled="False" Foreground="Black" Content="Manutenzione" />
+                    <Separator />
+                    <Button x:Name="btnCredentialCreateBackup" Click="BtnCredentialImport_Click" Content="Crea backup" />
+                    <Button x:Name="btnCredentialImportBackup" Click="BtnCredentialImportBackup_Click" Content="Importa backup" />
+                </ToolBar>
+            </ToolBarTray>
+        </DockPanel>
+        <TreeView x:Name="tvGroups" Margin="0,0,0,0" Grid.Row="1" Grid.Column="0" >
+            <TreeViewItem IsExpanded="True" x:Name="tviCredentialsWithoutGroups" Tag="0">
+                <TreeViewItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Database" />
+                    </StackPanel>
+                </TreeViewItem.Header>
+                <TreeViewItem IsExpanded="True" x:Name="tviMyGroups">
+                    <TreeViewItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="I miei gruppi" />
+                        </StackPanel>
+                    </TreeViewItem.Header>
+                </TreeViewItem>
+            </TreeViewItem>
+
+        </TreeView>
+        <Grid Margin="0,0,0,0"  Grid.Row="1" Grid.Column="1" >
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <DataGrid IsReadOnly="True"  Grid.Row="0" SelectionMode="Single"
+                AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Visibility="Collapsed" Header="ID" Binding="{Binding ID}" />
+                    <DataGridTextColumn Header="Titolo" Binding="{Binding Title}" />
+                    <DataGridTextColumn Header="Username" Binding = "{Binding Username}"/>
+                    <DataGridTextColumn Header="Email" Binding = "{Binding Email}"/>
+                    <DataGridTextColumn Header="Password" Binding = "{Binding PasswordVisual}"/>
+                    <DataGridHyperlinkColumn Header="Url" Binding="{Binding Url}" />
+                    <DataGridTextColumn Header="Note" Binding="{Binding Notes}" />
+                    <DataGridTextColumn Header="Data di scadenza" Binding="{Binding Expires}" />
+                    <DataGridTemplateColumn>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Click="ShowHidePassword" Content="Mostra password" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Grid Grid.Row="1" Visibility="{Binding AddModifyGroups, Converter={StaticResource VisibleIfTrueConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="100" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="7*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Aggiungi gruppo" Grid.Row="0" Margin="5" />
+                <TextBlock Grid.Column="0" Grid.Row="1" Text="Nome: *" HorizontalAlignment="Left" Margin="5" />
+                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding NewGroupName}" Margin="5" MaxLength="100" />
+                <TextBlock Grid.Column="0" Grid.Row="2" Text="Note:" HorizontalAlignment="Left" Margin="5" />
+                <TextBox MaxLines="5" Grid.Column="1" Grid.Row="2" Text="{Binding NewGroupNotes}" Margin="5" AcceptsReturn="True" MaxLength="9999" />
+                <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" x:Name="btnSaveGroup" Click="BtnSaveGroup_Click" Content="Salva" Margin="5" />
+            </Grid>
+            <Grid Grid.Row="1" Visibility="{Binding AddModifyCredential, Converter={StaticResource VisibleIfTrueConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="100" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="7*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Aggiungi credenziali" Grid.Row="0" Margin="5" />
+                <TextBlock Grid.Column="0" Grid.Row="1" Text="Titolo: *" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding NewCredentialTitle}" Margin="5" MaxLength="100" />
+                
+                <TextBlock Grid.Column="0" Grid.Row="2" Text="Email: *" HorizontalAlignment="Left" Margin="5" TextWrapping="WrapWithOverflow" />
+                <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding NewCredentialEmail}" Margin="5" MaxLength="100" />
+
+                <TextBlock Grid.Column="0" Grid.Row="3" Text="Password: *" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                <PasswordBox PasswordChar="*"  Grid.Column="1" Grid.Row="3" x:Name="txtNewPassword" PasswordChanged="PasswordBox_PasswordChanged" Margin="5" MaxLength="100" />
+
+                <TextBlock Grid.Column="0" Grid.Row="4" Text="Username:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding NewCredentialUsername}" Margin="5" MaxLength="100" />
+
+                <TextBlock Grid.Column="0" Grid.Row="5" Text="Url:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding NewCredentialUrl}" Margin="5" MaxLength="100" />
+
+                <TextBlock Grid.Column="0" Grid.Row="6" Text="Data di scadenza:" HorizontalAlignment="Left" TextWrapping="WrapWithOverflow" Margin="5"  />
+                <DatePicker Grid.Column="1" Grid.Row="6" Text="{Binding NewCredentialExpires}" Margin="5" />
+
+                <TextBlock Grid.Column="0" Grid.Row="7" Text="Note:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                <TextBox MaxLines="5" Grid.Column="1" Grid.Row="7" Text="{Binding NewCredentialNotes}" Margin="5" AcceptsReturn="True" MaxLength="9999" />
+                
+                <Button Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" x:Name="btnSaveCredential" Click="BtnSaveCredential_Click" Content="Salva" Margin="5" />
+            </Grid>
+            <Grid Grid.Row="2" Visibility="{Binding ShareCredential, Converter={StaticResource VisibleIfTrueConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="7*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Condividi credenziali" Grid.Row="0" Margin="5" />
+                <TextBlock  Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Text="Fornisci le seguenti informazioni con chi vuoi per condividere le credenziali" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                <TextBlock Grid.Column="0"  Grid.Row="3" Text="Stream:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding ShareCredentialString}" Margin="5" IsReadOnly="True" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

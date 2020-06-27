@@ -3,6 +3,7 @@ using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -12,7 +13,15 @@ namespace Business
 {
     public static class Helpers
     {
-        static string AppDataPath { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SecretPassword"); } }
+        static string EnvironmentKey
+        {
+            get
+            {
+                try { return ConfigurationManager.AppSettings["Environment"].ToString(); }
+                catch { return string.Empty; }
+            }
+        }
+        public static string AppDataPath { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), $"SecretPassword{EnvironmentKey}"); } }
         static string DatabaseGroupsPath { get { return Path.Combine(AppDataPath, "dbag.sp"); } }
         static string DatabaseCredentialsPath { get { return Path.Combine(AppDataPath, "dbac.sp"); } }
         static string UsersSalt { get; set; }

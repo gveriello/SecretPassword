@@ -12,8 +12,7 @@ namespace Business
 {
     public static class Credentials
     {
-        static string AppDataPath { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SecretPassword"); } }
-        static string DatabaseCredentialsPath { get { return Path.Combine(AppDataPath, "dbac.sp"); } }
+        static string DatabaseCredentialsPath { get { return Path.Combine(Helpers.AppDataPath, "dbac.sp"); } }
         private static IList<Credential> credentials { get; set; }
         public static void LoadAll()
         {

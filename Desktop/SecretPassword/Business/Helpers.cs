@@ -117,7 +117,7 @@ namespace Business
             return File.ReadAllText(DatabaseCredentialsPath).Decrypt(UsersSalt);
         }
 
-        private static string ReadBackup(string fileName)
+        public static string ReadBackup(string fileName)
         {
             CreateDatabasesIfNotExists();
             CheckIfExistSalt();

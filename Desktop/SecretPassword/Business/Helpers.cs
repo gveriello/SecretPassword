@@ -13,14 +13,11 @@ namespace Business
 {
     public static class Helpers
     {
-        static string EnvironmentKey
-        {
-            get
-            {
-                try { return ConfigurationManager.AppSettings["Environment"].ToString(); }
-                catch { return string.Empty; }
-            }
-        }
+#if DEBUG
+          static string EnvironmentKey { get { return "DEV"; } }
+#else
+        static string EnvironmentKey { get { return "PROD"; } }
+#endif
         public static string AppDataPath { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), $"SecretPassword{EnvironmentKey}"); } }
         static string DatabaseGroupsPath { get { return Path.Combine(AppDataPath, "dbag.sp"); } }
         static string DatabaseCredentialsPath { get { return Path.Combine(AppDataPath, "dbac.sp"); } }
@@ -61,7 +58,7 @@ namespace Business
         public static string AskSalt()
         {
             bool isAsked = false;
-            while(true)
+            while (true)
             {
                 string input = Interaction.InputBox((isAsked ? "La password è obbligatoria." : string.Empty), "Inserisci la password con cui cripteremo/decripteremo i tuoi dati.");
                 if (!string.IsNullOrEmpty(input))

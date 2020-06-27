@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace Business
         static string AppDataPath { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SecretPassword"); } }
         static string DatabaseCredentialsPath { get { return Path.Combine(AppDataPath, "dbac.sp"); } }
         private static IList<Credential> credentials { get; set; }
-        public static IList<Credential> LoadCredentialsLocalByGroupID(int groupID)
+        public static void LoadAll()
         {
             string credentialFromFile = Helpers.ReadCredentials();
             if (!string.IsNullOrEmpty(credentialFromFile))
@@ -22,8 +23,16 @@ namespace Business
 
             CheckCredentialsLoaded();
 
+            foreach (Credential credential in credentials)
+                credential.ShowPassword = false;
+        }
+
+        public static IList<Credential> LoadCredentialsLocalByGroupID(int groupID)
+        {
+            LoadAll();
             IList<Credential> credentialsTemp = credentials.Where(c => c.GroupID == groupID).ToList();
-            foreach (Credential credential in credentialsTemp) credential.ShowPassword = false;
+            foreach (Credential credential in credentialsTemp)
+                credential.ShowPassword = false;
 
             return credentialsTemp;
         }
@@ -97,11 +106,12 @@ namespace Business
 
             IList<Credential> credentialGroup = credentials.Where(c => c.GroupID == groupID).ToList();
             if (credentialGroup != null)
-                foreach (Credential credential in credentialGroup) credentials.Remove(credential);
+                foreach (Credential credential in credentialGroup)
+                    credentials.Remove(credential);
             Save();
         }
 
-        private static void Save()
+        public static void Save()
         {
             CheckCredentialsLoaded();
 
@@ -213,12 +223,102 @@ namespace Business
 
         public static void CreateBackup()
         {
+            LoadAll();
             Save();
 
             if (!Directory.Exists("backup"))
                 Directory.CreateDirectory("backup");
 
-            File.Copy(DatabaseCredentialsPath, "backup/dbac.sp", true);
+            File.Copy(DatabaseCredentialsPath, $"backup/Backup{DateTime.Today.ToString("ddMMyyyy")}", true);
+        }
+
+        public static int ImportBackup()
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog().GetValueOrDefault())
+            {
+                string stream = Helpers.ReadBackup(openFileDialog.FileName);
+                if (!string.IsNullOrEmpty(stream))
+                {
+                    IList<Credential> tempCredentials = JsonConvert.DeserializeObject<IList<Credential>>(stream).ToList();
+                    int msgError = 0;
+                    if (tempCredentials?.Count > 0)
+                    {
+                        foreach(Credential tempCredential in tempCredentials)
+                        {
+                            bool isError = false;
+                            int proxID = 1;
+                            if (credentials.Count > 0)
+                                proxID = credentials.Max(g => g.ID) + 1;
+
+                            if (string.IsNullOrEmpty(tempCredential.Title))
+                                if (!isError) isError = true;
+
+                            if (string.IsNullOrEmpty(tempCredential.Email))
+                                if (!isError) isError = true;
+
+                            if (string.IsNullOrEmpty(tempCredential.Password))
+                                if (!isError) isError = true;
+
+                            if (isError)
+                            {
+                                msgError++;
+                                continue;
+                            }
+
+                            int existingSameCredentials = credentials.Count(c => c.Title.ToLower() == tempCredential.Title.ToLower() && c.GroupID == tempCredential.GroupID.GetValueOrDefault());
+                            if (existingSameCredentials > 0)
+                                tempCredential.Title = tempCredential.Title + $"({existingSameCredentials + 1})";
+
+                            credentials.Add(tempCredential);
+                        }
+                        Save();
+                    }
+                    return msgError;
+                }
+            }
+            return 0;
+        }
+
+        public static int ImportChrome(int? groupID)
+        {
+            LoadAll();
+            IList<Credential> tempCredentials = BrowserPasswordsImporter.ImportFromChrome();
+            int msgError = 0;
+            if (tempCredentials?.Count > 0)
+            {
+                foreach (Credential tempCredential in tempCredentials)
+                {
+                    bool isError = false;
+                    int proxID = 1;
+                    if (credentials.Count > 0)
+                        proxID = credentials.Max(g => g.ID) + 1;
+
+                    if (string.IsNullOrEmpty(tempCredential.Email))
+                        if (!isError) isError = true;
+
+                    if (string.IsNullOrEmpty(tempCredential.Password))
+                        if (!isError) isError = true;
+
+                    if (isError)
+                    {
+                        msgError++;
+                        continue;
+                    }
+
+                    int existingSameCredentials = credentials.Count(c => c.Title.ToLower() == tempCredential.Title.ToLower() && c.GroupID == groupID.GetValueOrDefault());
+                    if (existingSameCredentials > 0)
+                        tempCredential.Title = tempCredential.Title + $"({existingSameCredentials + 1})";
+
+                    tempCredential.GroupID = groupID.GetValueOrDefault();
+
+                    credentials.Add(tempCredential);
+                    
+                }
+                Save();
+                return msgError;
+            }
+            return 0;
         }
     }
 }

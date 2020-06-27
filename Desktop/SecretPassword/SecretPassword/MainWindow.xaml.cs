@@ -1,5 +1,6 @@
 ﻿using Business;
 using Entities;
+using Microsoft.Win32;
 using Models;
 using System;
 using System.IO;
@@ -247,10 +248,36 @@ namespace SecretPassword
             }
         }
 
-        private void BtnCredentialImportBackup_Click(object sender, RoutedEventArgs e)
+        private void BtnCredentialBackup_Click(object sender, RoutedEventArgs e)
         {
             Credentials.CreateBackup();
-            MessageBox.Show($"Backup creato in {Directory.GetCurrentDirectory()}/backup/dbc.sp");
+            MessageBox.Show($"Backup creato in {Path.Combine(Directory.GetCurrentDirectory(), "backup")}.{Environment.NewLine}Affinchè possa essere reimportato correttamente, è necessario che la password impostata di default non cambi.");
+        }
+
+        private void BtnCredentialImportBackup_Click(object sender, RoutedEventArgs e)
+        {
+            int errors = Credentials.ImportBackup();
+            string msgError = errors > 0 ? $" {errors} record non sono stati importati per errori." : string.Empty;
+            MessageBox.Show($"Import completato.{msgError}");
+            this.ReloadCredentialsSource();
+        }
+
+        private void BtnCredentialImportChrome_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int errors = Credentials.ImportChrome(this.Model.GroupSelected?.ID);
+                string msgError = errors > 0 ? $" {errors} record non sono stati importati per errori." : string.Empty;
+                MessageBox.Show($"Import completato.{msgError}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                this.ReloadCredentialsSource();
+            }
         }
     }
 }

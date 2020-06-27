@@ -116,6 +116,14 @@ namespace Business
 
             return File.ReadAllText(DatabaseCredentialsPath).Decrypt(UsersSalt);
         }
+
+        private static string ReadBackup(string fileName)
+        {
+            CreateDatabasesIfNotExists();
+            CheckIfExistSalt();
+
+            return File.ReadAllText(fileName).Decrypt(UsersSalt);
+        }
     }
     public static class Crypto
     {

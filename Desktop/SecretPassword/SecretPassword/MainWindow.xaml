@@ -19,30 +19,30 @@
             <ColumnDefinition Width="7*" />
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top"  Grid.ColumnSpan="2" >
-            <ToolBarTray DockPanel.Dock="Top">
-                <ToolBar>
-                    <Button IsEnabled="False" Foreground="Black" Content="Gestione gruppi" />
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Gruppi">
+                    <MenuItem Click="BtnGroupAdd_Click" Header="Aggiungi" />
+                    <MenuItem Click="BtnGroupModify_Click" IsEnabled="{Binding IsGroupSelected}" Header="Modifica" />
+                    <MenuItem Click="BtnGroupRemove_Click" IsEnabled="{Binding IsGroupSelected}" Header="Elimina"  />
+                </MenuItem>
+                <MenuItem Header="Credenziali">
+                    <MenuItem Click="BtnCredentialAdd_Click" Header="Aggiungi" />
+                    <MenuItem Click="BtnCredentialModify_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Modifica" />
+                    <MenuItem Click="BtnCredentialRemove_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Elimina"  />
+                    <MenuItem Click="BtnCredentialShare_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Condividi" />
+                </MenuItem>
+                <MenuItem Header="Manutenzione">
+                    <MenuItem Click="BtnCredentialBackup_Click" Header="Crea backup" />
                     <Separator />
-                    <Button x:Name="btnGroupAdd" Click="BtnGroupAdd_Click" Content="Aggiungi" />
-                    <Button x:Name="btnGroupModify" Click="BtnGroupModify_Click" IsEnabled="{Binding IsGroupSelected}" Content="Modifica" />
-                    <Button x:Name="btnGroupRemove" Click="BtnGroupRemove_Click" IsEnabled="{Binding IsGroupSelected}" Content="Elimina" />
-                </ToolBar>
-                <ToolBar>
-                    <Button IsEnabled="False" Foreground="Black" Content="Gestione credenziali" />
-                    <Separator />
-                    <Button x:Name="btnCredentialAdd" Click="BtnCredentialAdd_Click" Content="Aggiungi" />
-                    <Button x:Name="btnCredentialModify" Click="BtnCredentialModify_Click" IsEnabled="{Binding IsCredentialSelected}" Content="Modifica" />
-                    <Button x:Name="btnCredentialRemove" Click="BtnCredentialRemove_Click" IsEnabled="{Binding IsCredentialSelected}" Content="Elimina" />
-                    <Button x:Name="btnCredentialShare" Click="BtnCredentialShare_Click" IsEnabled="{Binding IsCredentialSelected}" Content="Condividi" />
-                    <Button x:Name="btnCredentialImport" Click="BtnCredentialImport_Click" Content="Importa" />
-                </ToolBar>
-                <ToolBar>
-                    <Button IsEnabled="False" Foreground="Black" Content="Manutenzione" />
-                    <Separator />
-                    <Button x:Name="btnCredentialCreateBackup" Click="BtnCredentialImport_Click" Content="Crea backup" />
-                    <Button x:Name="btnCredentialImportBackup" Click="BtnCredentialImportBackup_Click" Content="Importa backup" />
-                </ToolBar>
-            </ToolBarTray>
+                    <MenuItem  IsEnabled="{Binding IsGroupSelected}" Header="Importa da">
+                        <MenuItem  Click="BtnCredentialImport_Click" Header="Stream amico" />
+                        <MenuItem Click="BtnCredentialImportBackup_Click" Header="Backup" />
+                        <MenuItem Click="BtnCredentialImportChrome_Click" Header="Chrome" />
+                        <MenuItem Click="BtnCredentialImportBackup_Click" Header="Firefox" />
+                        <MenuItem Click="BtnCredentialImportBackup_Click" Header="Internet Explorer" />
+                    </MenuItem>
+                </MenuItem>
+            </Menu>
         </DockPanel>
         <TreeView x:Name="tvGroups" Margin="0,0,0,0" Grid.Row="1" Grid.Column="0" >
             <TreeViewItem IsExpanded="True" x:Name="tviCredentialsWithoutGroups" Tag="0">

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SecretPassword"
         mc:Ignorable="d"
-        Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="800">
+        Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="500" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
         <local:InvertBoolConverter x:Key="InvertPropertyConverter" />
@@ -72,13 +72,6 @@
                 AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Visibility="Collapsed" Header="ID" Binding="{Binding ID}" />
-                    <DataGridTemplateColumn>
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Click="ShowHidePassword" Content="Mostra password" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Titolo" Binding="{Binding Title}" />
                     <DataGridTextColumn Header="Username" Binding = "{Binding Username}"/>
                     <DataGridTextColumn Header="Email" Binding = "{Binding Email}"/>
@@ -86,8 +79,15 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid>
-                                    <TextBlock Text="**********" Visibility="{Binding ShowPassword, Converter={StaticResource InvertPropertyConverter}}"  />
-                                    <TextBox Text="{Binding Password}" IsReadOnly="True" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" />
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Click="ShowHidePassword" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                        <Image Source="..\resources\show_password.png" Height="20" Width="20" ToolTip="Mostra/Nascondi password" />
+                                    </Button>
+                                    <TextBlock Grid.Column="1" Text="**********" Visibility="{Binding ShowPassword, Converter={StaticResource InvertPropertyConverter}}"  />
+                                    <TextBox Grid.Column="1" Text="{Binding Password}" IsReadOnly="True" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" />
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

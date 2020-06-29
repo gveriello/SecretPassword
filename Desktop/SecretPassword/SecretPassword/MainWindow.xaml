@@ -8,6 +8,7 @@
         Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="800">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
+        <local:InvertBoolConverter x:Key="InvertPropertyConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -15,8 +16,8 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*" />
-            <ColumnDefinition Width="7*" />
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="8*" />
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top"  Grid.ColumnSpan="2" >
             <Menu DockPanel.Dock="Top">
@@ -71,13 +72,6 @@
                 AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Visibility="Collapsed" Header="ID" Binding="{Binding ID}" />
-                    <DataGridTextColumn Header="Titolo" Binding="{Binding Title}" />
-                    <DataGridTextColumn Header="Username" Binding = "{Binding Username}"/>
-                    <DataGridTextColumn Header="Email" Binding = "{Binding Email}"/>
-                    <DataGridTextColumn Header="Password" Binding = "{Binding PasswordVisual}"/>
-                    <DataGridHyperlinkColumn Header="Url" Binding="{Binding Url}" />
-                    <DataGridTextColumn Header="Note" Binding="{Binding Notes}" />
-                    <DataGridTextColumn Header="Data di scadenza" Binding="{Binding Expires}" />
                     <DataGridTemplateColumn>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -85,6 +79,22 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Titolo" Binding="{Binding Title}" />
+                    <DataGridTextColumn Header="Username" Binding = "{Binding Username}"/>
+                    <DataGridTextColumn Header="Email" Binding = "{Binding Email}"/>
+                    <DataGridTemplateColumn Header="Password">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <TextBlock Text="**********" Visibility="{Binding ShowPassword, Converter={StaticResource InvertPropertyConverter}}"  />
+                                    <TextBox Text="{Binding Password}" IsReadOnly="True" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" />
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridHyperlinkColumn Header="Url" Binding="{Binding Url}" />
+                    <DataGridTextColumn Header="Note" Binding="{Binding Notes}" />
+                    <DataGridTextColumn Header="Data di scadenza" Binding="{Binding Expires}" />
                 </DataGrid.Columns>
             </DataGrid>
             <Grid Grid.Row="1" Visibility="{Binding AddModifyGroups, Converter={StaticResource VisibleIfTrueConverter}}">

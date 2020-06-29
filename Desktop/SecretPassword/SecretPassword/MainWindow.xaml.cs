@@ -7,6 +7,8 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Configuration;
+using System.Windows.Data;
+using System.Globalization;
 
 namespace SecretPassword
 {
@@ -277,6 +279,32 @@ namespace SecretPassword
             {
                 this.ReloadCredentialsSource();
             }
+        }
+    }
+
+
+    [ValueConversion(typeof(bool), typeof(bool))]
+    public class InvertBoolConverter : IValueConverter
+    {
+        public InvertBoolConverter()
+        {
+        }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool)
+            {
+                bool actualValue = (bool)value;
+                bool returnValue = !actualValue;
+                return returnValue;
+            }
+
+            return true;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

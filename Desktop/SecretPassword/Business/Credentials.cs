@@ -124,10 +124,8 @@ namespace Business
 
             Credential credential = credentials.FirstOrDefault(c => c.ID == credentialID);
             if (credential != null)
-            {
-                credential.ShowPassword = false;
                 return Helpers.GetCredentialCripted(credential);
-            }
+
             throw new Exception("Impossibile trovare l' elemento.");
         }
 
@@ -185,12 +183,16 @@ namespace Business
             if (string.IsNullOrEmpty(stream))
                 return;
 
-            if (!stream.Contains("Stream|") && !stream.Contains("|Salt|"))
+            if (string.IsNullOrEmpty(stream))
                 throw new InvalidOperationException("Stream non valido.");
 
-            int indexSaltString = stream.IndexOf("|Salt|");
-            string streamCredential = stream.Substring(7, indexSaltString - 7);
-            string salt = stream.Substring(indexSaltString + 6);
+            StreamToShare sharedStream = JsonConvert.DeserializeObject<StreamToShare>(stream.FromBase64());
+
+            if (sharedStream == null)
+                throw new InvalidOperationException("Stream non valido.");
+
+            string streamCredential = sharedStream.Stream;
+            string salt = sharedStream.Salt;
 
             Credential credentialImported = JsonConvert.DeserializeObject<Credential>(streamCredential.Decrypt(salt));
             if (credentialImported == null)

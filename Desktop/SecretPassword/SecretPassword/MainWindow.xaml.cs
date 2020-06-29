@@ -214,6 +214,7 @@ namespace SecretPassword
                 this.txtNewPassword.Password = this.Model.CredentialSelected.Password;
                 this.Model.NewCredentialUrl = this.Model.CredentialSelected.Url;
                 this.Model.NewCredentialExpires = this.Model.CredentialSelected.Expires.ToString();
+                this.Model.NewCredentialNotes = this.Model.CredentialSelected.Notes;
             }
             this.Model.ModifyCredential = !this.Model.ModifyCredential;
         }
@@ -223,10 +224,8 @@ namespace SecretPassword
             this.Reset();
             if (!this.Model.ShareCredential)
             {
-                this.Model.CredentialSelected.ShowPassword = true;
                 string hash = Credentials.Export(this.Model.CredentialSelected.ID);
                 this.Model.ShareCredentialString = hash;
-                this.Model.CredentialSelected.ShowPassword = false;
             }
             this.Model.ShareCredential = !this.Model.ShareCredential;
         }

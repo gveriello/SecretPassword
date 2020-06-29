@@ -13,11 +13,13 @@ namespace Business
 {
     public static class Helpers
     {
+
 #if DEBUG
-          static string EnvironmentKey { get { return "DEV"; } }
+        static string EnvironmentKey { get { return "DEV"; } }
 #else
         static string EnvironmentKey { get { return "PROD"; } }
 #endif
+
         public static string AppDataPath { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), $"SecretPassword{EnvironmentKey}"); } }
         static string DatabaseGroupsPath { get { return Path.Combine(AppDataPath, "dbag.sp"); } }
         static string DatabaseCredentialsPath { get { return Path.Combine(AppDataPath, "dbac.sp"); } }
@@ -33,7 +35,14 @@ namespace Business
 
                 string credentialSerialized = JsonConvert.SerializeObject(credential);
                 string credentialCrypted = credentialSerialized.Encrypt(salt);
-                return $"Stream|{credentialCrypted}|Salt|{salt}";
+                StreamToShare streamToShare = new StreamToShare()
+                {
+                    Stream = credentialCrypted,
+                    Salt = salt
+                };
+                credential.ShowPassword = false;
+                string streamJson = JsonConvert.SerializeObject(streamToShare);
+                return streamJson.ToBase64();
             }
             throw new Exception("Impossibile creare lo stream di condivisione.");
         }
@@ -238,6 +247,16 @@ namespace Business
                 rngCsp.GetBytes(randomBytes);
             }
             return randomBytes;
+        }
+        public static string ToBase64(this string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
+        public static string FromBase64(this string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
         }
     }
 }

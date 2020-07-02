@@ -4,11 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SecretPassword"
+        xmlns:converters="clr-namespace:SecretPassword.Converters"
         mc:Ignorable="d"
         Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="500" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
-        <local:InvertBoolConverter x:Key="InvertPropertyConverter" />
+        <converters:InvertBoolConverter x:Key="InvertPropertyConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -49,7 +50,7 @@
             <TreeViewItem IsExpanded="True" x:Name="tviCredentialsWithoutGroups" Tag="0">
                 <TreeViewItem.Header>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Database" />
+                        <TextBlock Text="Riepilogo" />
                     </StackPanel>
                 </TreeViewItem.Header>
                 <TreeViewItem IsExpanded="True" x:Name="tviMyGroups">

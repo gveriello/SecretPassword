@@ -16,20 +16,52 @@ namespace Business
         private static IList<Credential> credentials { get; set; }
         public static void LoadAll()
         {
+            LoadMasterPassword();
+
             string credentialFromFile = Helpers.ReadCredentials();
             if (!string.IsNullOrEmpty(credentialFromFile))
-                credentials = JsonConvert.DeserializeObject<IList<Credential>>(credentialFromFile).ToList();
-
-            CheckCredentialsLoaded();
+                credentials = credentials.Concat(JsonConvert.DeserializeObject<IList<Credential>>(credentialFromFile).ToList()).ToList();
 
             foreach (Credential credential in credentials)
                 credential.ShowPassword = false;
         }
 
+        private static void LoadMasterPassword()
+        {
+            CheckCredentialsLoaded();
+
+            if (credentials.Any(c => c.ID == 0))
+                return;
+
+            Credential masterPassword = new Credential();
+            masterPassword.ID = 0;
+            masterPassword.Title = "Master Password";
+            masterPassword.Username = string.Empty;
+            masterPassword.Email = string.Empty;
+            masterPassword.Password = Helpers.GetOrAskSalt();
+            masterPassword.ShowPassword = false;
+            masterPassword.Url = string.Empty;
+            masterPassword.Expires = null;
+
+            credentials.Add(masterPassword);
+            credentials = credentials.OrderBy(c => c.ID).ToList();
+        }
+
         public static IList<Credential> LoadCredentialsLocalByGroupID(int groupID)
         {
             LoadAll();
-            IList<Credential> credentialsTemp = credentials.Where(c => c.GroupID == groupID).ToList();
+
+            IList<Credential> credentialsTemp = null;
+
+            if (groupID < 0)
+                credentialsTemp = new List<Credential>();
+
+            if (groupID == 0)
+                credentialsTemp = new List<Credential>(credentials);
+
+            if (groupID > 0)
+                credentialsTemp = credentials.Where(c => c.GroupID == groupID).ToList();
+
             foreach (Credential credential in credentialsTemp)
                 credential.ShowPassword = false;
 
@@ -40,6 +72,7 @@ namespace Business
         {
             if (credentials == null)
                 credentials = new List<Credential>();
+            credentials.Clear();
         }
 
         public static int Add(int idGroup, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, string newCredentialExpires)
@@ -84,11 +117,21 @@ namespace Business
             }
 
             credentials.Add(newCredential);
-            credentials = credentials.OrderBy(c => c.Title).ToList();
+            credentials = credentials.OrderBy(c => c.ID).ToList();
 
             Save();
 
             return proxID;
+        }
+
+        public static void ModifyMasterPassword(string newSalt)
+        {
+            if (string.IsNullOrEmpty(newSalt))
+                return;
+
+            foreach (Credential credential in credentials) credential.ShowPassword = false;
+            Helpers.ChangeSalt(newSalt);
+            Helpers.SaveCredentials(JsonConvert.SerializeObject(credentials.Where(c => c.ID > 0)));
         }
 
         public static void Delete(int idCredential)
@@ -115,7 +158,7 @@ namespace Business
             CheckCredentialsLoaded();
 
             foreach (Credential credential in credentials) credential.ShowPassword = false;
-            Helpers.SaveCredentials(JsonConvert.SerializeObject(credentials));
+            Helpers.SaveCredentials(JsonConvert.SerializeObject(credentials.Where(c => c.ID != 0)));
         }
 
         public static string Export(int credentialID)
@@ -169,7 +212,7 @@ namespace Business
                 }
                 credentials.Remove(credential);
                 credentials.Add(credential);
-                credentials = credentials.OrderBy(c => c.Title).ToList();
+                credentials = credentials.OrderBy(c => c.ID).ToList();
             }
             Save();
         }

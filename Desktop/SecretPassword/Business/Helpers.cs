@@ -47,8 +47,20 @@ namespace Business
             throw new Exception("Impossibile creare lo stream di condivisione.");
         }
 
+        public static void ConvalidateSalt()
+        {
+            while(true)
+            {
+                string saltFromUser = AskSalt();
+                if (UsersSalt == saltFromUser)
+                    return;
+            }
+        }
+
         public static void CheckIfExistSalt()
         {
+            //VLN87O41I7J3zuMNSYHAUA==
+            //VkxOODdPNDFJN0ozenVNTlNZSEFVQT09
             RegistryKey key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\SP", true);
             if (key == null)
             {
@@ -60,10 +72,29 @@ namespace Business
                 if (string.IsNullOrEmpty(key.GetValue("SPSalt")?.ToString()))
                     key.SetValue("SPSalt", AskSalt().Encrypt(Path.GetRandomFileName().Replace(".", "")));
             }
-            UsersSalt = key.GetValue("SPSalt").ToString();
+            UsersSalt = key.GetValue("SPSalt").ToString().FromBase64();
             key.Close();
         }
 
+        public static void ChangeSalt(string newSalt)
+        {
+            if (string.IsNullOrEmpty(newSalt))
+                return;
+
+            UsersSalt = newSalt.ToBase64();
+            RegistryKey key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\SP", true);
+            if (key != null)
+                key.SetValue("SPSalt", UsersSalt);
+            key.Close();
+        }
+
+        public static string GetOrAskSalt()
+        {
+            if (!string.IsNullOrEmpty(UsersSalt))
+                return UsersSalt;
+
+            return AskSalt();
+        }
         public static string AskSalt()
         {
             bool isAsked = false;

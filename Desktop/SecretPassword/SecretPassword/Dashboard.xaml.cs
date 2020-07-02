@@ -54,6 +54,7 @@ namespace SecretPassword
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             Helpers.CheckIfExistSalt();
+            Helpers.ConvalidateSalt();
             this.LoadTree();
             this.tvGroups.SelectedItemChanged += this.TvGroups_SelectedItemChanged;
         }
@@ -80,6 +81,8 @@ namespace SecretPassword
         private void ShowHidePassword(object sender, RoutedEventArgs e)
         {
             Credential row = (sender as Button).DataContext as Credential;
+            if (!row.ShowPassword)
+                Helpers.ConvalidateSalt();
             row.ShowPassword = !row.ShowPassword;
             this.Model.ReloadCredentialsGrid();
         }
@@ -87,7 +90,6 @@ namespace SecretPassword
         private void ReloadCredentialsSource()
         {
             this.Model.CredentialsSource = Credentials.LoadCredentialsLocalByGroupID(this.Model.CredentialGroupID.GetValueOrDefault());
-
         }
 
         private void BtnGroupAdd_Click(object sender, RoutedEventArgs e)
@@ -136,7 +138,10 @@ namespace SecretPassword
             try
             {
                 if (this.Model.ModifyCredential)
-                    Credentials.Modify(this.Model.ModifyCredentialID, this.Model.CredentialGroupID.GetValueOrDefault(), this.Model.NewCredentialTitle, this.Model.NewCredentialUsername, this.Model.NewCredentialEmail, this.Model.NewCredentialPassword, this.Model.NewCredentialUrl, this.Model.NewCredentialNotes, this.Model.NewCredentialExpires);
+                    if (this.Model.ModifyCredentialID == 0)
+                        Credentials.ModifyMasterPassword(this.Model.NewCredentialPassword);
+                    else
+                        Credentials.Modify(this.Model.ModifyCredentialID, this.Model.CredentialGroupID.GetValueOrDefault(), this.Model.NewCredentialTitle, this.Model.NewCredentialUsername, this.Model.NewCredentialEmail, this.Model.NewCredentialPassword, this.Model.NewCredentialUrl, this.Model.NewCredentialNotes, this.Model.NewCredentialExpires);
                 else
                     Credentials.Add(this.Model.CredentialGroupID.GetValueOrDefault(), this.Model.NewCredentialTitle, this.Model.NewCredentialUsername, this.Model.NewCredentialEmail, this.Model.NewCredentialPassword, this.Model.NewCredentialUrl, this.Model.NewCredentialNotes, this.Model.NewCredentialExpires);
             }
@@ -283,28 +288,5 @@ namespace SecretPassword
     }
 
 
-    [ValueConversion(typeof(bool), typeof(bool))]
-    public class InvertBoolConverter : IValueConverter
-    {
-        public InvertBoolConverter()
-        {
-        }
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool)
-            {
-                bool actualValue = (bool)value;
-                bool returnValue = !actualValue;
-                return returnValue;
-            }
-
-            return true;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
+   
 }

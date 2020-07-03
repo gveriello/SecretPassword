@@ -72,7 +72,6 @@ namespace Business
         {
             if (credentials == null)
                 credentials = new List<Credential>();
-            credentials.Clear();
         }
 
         public static int Add(int idGroup, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, string newCredentialExpires)
@@ -129,7 +128,7 @@ namespace Business
             if (string.IsNullOrEmpty(newSalt))
                 return;
 
-            foreach (Credential credential in credentials) credential.ShowPassword = false;
+            credentials.ToList().ForEach(c => c.ShowPassword = false);
             Helpers.ChangeSalt(newSalt);
             Helpers.SaveCredentials(JsonConvert.SerializeObject(credentials.Where(c => c.ID > 0)));
         }
@@ -148,8 +147,10 @@ namespace Business
 
             IList<Credential> credentialGroup = credentials.Where(c => c.GroupID == groupID).ToList();
             if (credentialGroup != null)
-                foreach (Credential credential in credentialGroup)
-                    credentials.Remove(credential);
+                credentialGroup.ToList().ForEach(c => {
+                    c.ShowPassword = false;
+                    credentials.Remove(c);
+                });
             Save();
         }
 
@@ -157,7 +158,7 @@ namespace Business
         {
             CheckCredentialsLoaded();
 
-            foreach (Credential credential in credentials) credential.ShowPassword = false;
+            credentials.ToList().ForEach(c => c.ShowPassword = false);
             Helpers.SaveCredentials(JsonConvert.SerializeObject(credentials.Where(c => c.ID != 0)));
         }
 

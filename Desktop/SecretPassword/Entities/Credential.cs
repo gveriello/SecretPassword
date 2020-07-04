@@ -17,7 +17,8 @@ namespace Entities
         public string Url { get; set; }
         public string Notes { get; set; }
         public DateTime? Expires { get; set; }
-        public int? GroupID { get; set; }
+        public Group GroupOwner { get; set; }
+        public int? GroupID { get { return this.GroupOwner?.ID; } }
         public int UserID { get; set; }
     }
 }

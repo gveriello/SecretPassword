@@ -47,13 +47,18 @@ namespace Business
             throw new Exception("Impossibile creare lo stream di condivisione.");
         }
 
-        public static void ConvalidateSalt()
+        public static bool ConvalidateSalt(bool isRequired = false)
         {
             while(true)
             {
-                string saltFromUser = AskSalt();
+                string saltFromUser = AskSalt(isRequired);
                 if (UsersSalt == saltFromUser)
-                    return;
+                    return true;
+
+                if (isRequired)
+                    continue;
+
+                return false;
             }
         }
 
@@ -61,16 +66,16 @@ namespace Business
         {
             //VLN87O41I7J3zuMNSYHAUA==
             //VkxOODdPNDFJN0ozenVNTlNZSEFVQT09
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\SP", true);
+            RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\SP{EnvironmentKey}", true);
             if (key == null)
             {
-                key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\SP");
-                key.SetValue("SPSalt", AskSalt().Encrypt(Path.GetRandomFileName().Replace(".", "")));
+                key = Registry.CurrentUser.CreateSubKey($"SOFTWARE\\SP{EnvironmentKey}");
+                key.SetValue("SPSalt", AskSalt(isRequired: true, isFirstAccess: true).ToBase64());
             }
             if (key != null)
             {
                 if (string.IsNullOrEmpty(key.GetValue("SPSalt")?.ToString()))
-                    key.SetValue("SPSalt", AskSalt().Encrypt(Path.GetRandomFileName().Replace(".", "")));
+                    key.SetValue("SPSalt", AskSalt(isRequired: true, isFirstAccess: true).Encrypt(Path.GetRandomFileName().Replace(".", "")));
             }
             UsersSalt = key.GetValue("SPSalt").ToString().FromBase64();
             key.Close();
@@ -82,7 +87,7 @@ namespace Business
                 return;
 
             UsersSalt = newSalt.ToBase64();
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\SP", true);
+            RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\SP{EnvironmentKey}", true);
             if (key != null)
                 key.SetValue("SPSalt", UsersSalt);
             key.Close();
@@ -95,14 +100,25 @@ namespace Business
 
             return AskSalt();
         }
-        public static string AskSalt()
+        public static string AskSalt(bool isRequired = false, bool isFirstAccess = false)
         {
             bool isAsked = false;
             while (true)
             {
-                string input = Interaction.InputBox((isAsked ? "La password è obbligatoria." : string.Empty), "Inserisci la password con cui cripteremo/decripteremo i tuoi dati.");
+                string messageToShow = string.Empty;
+                if (isFirstAccess)
+                    messageToShow = $"La password che inserirai verrà utilizzata per criptare/decriptare le tue informazioni in totale sicurezza.{Environment.NewLine}" +
+                        $"Ti verrà chiesta ogni volta che verrà effettuata un' operazione di sicurezza.";
+                if (isAsked && isRequired)
+                    messageToShow += $"{Environment.NewLine}La password è obbligatoria.";
+
+                string input = Interaction.InputBox(messageToShow, "Inserisci la password:");
                 if (!string.IsNullOrEmpty(input))
                     return input;
+
+                if (!isRequired)
+                    return string.Empty;
+
                 isAsked = true;
             }
         }

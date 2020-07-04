@@ -53,8 +53,11 @@ namespace SecretPassword
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            this.Height = this.MinHeight;
+            this.Width = this.MinWidth;
             Helpers.CheckIfExistSalt();
-            Helpers.ConvalidateSalt();
+            Helpers.ConvalidateSalt(isRequired: true);
+            this.Topmost = true;
             this.LoadTree();
             this.tvGroups.SelectedItemChanged += this.TvGroups_SelectedItemChanged;
         }
@@ -63,7 +66,6 @@ namespace SecretPassword
         {
             object tag = ((e.NewValue as TreeViewItem).Tag);
             this.Model.GroupSelectedObject = tag;
-
             this.Reset();
             ReloadCredentialsSource();
         }
@@ -76,14 +78,16 @@ namespace SecretPassword
             this.Model.ClearModifyCredential();
             this.Model.ClearModifyGroup();
             this.Model.ClearShare();
+            this.dgtcGroupName.Visibility = (this.Model.IsRootSelected) ? Visibility.Visible : Visibility.Collapsed;
+            this.dgCredentials.Visibility = (this.Model.IsRootSelected || this.Model.IsGroupSelected) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void ShowHidePassword(object sender, RoutedEventArgs e)
         {
             Credential row = (sender as Button).DataContext as Credential;
-            if (!row.ShowPassword)
-                Helpers.ConvalidateSalt();
-            row.ShowPassword = !row.ShowPassword;
+            this.Topmost = false;
+            row.ShowPassword = !row.ShowPassword && Helpers.ConvalidateSalt(isRequired: false);
+            this.Topmost = true;
             this.Model.ReloadCredentialsGrid();
         }
 
@@ -103,7 +107,6 @@ namespace SecretPassword
         {
             this.Reset();
             this.Model.AddCredential = !this.Model.AddCredential;
-            this.Model.AddGroup = false;
         }
 
         private void BtnSaveGroup_Click(object sender, RoutedEventArgs e)
@@ -139,11 +142,14 @@ namespace SecretPassword
             {
                 if (this.Model.ModifyCredential)
                     if (this.Model.ModifyCredentialID == 0)
-                        Credentials.ModifyMasterPassword(this.Model.NewCredentialPassword);
+                    {
+                        if (MessageBox.Show("Modificando una Master Password, potresti perdere alcune informazioni. Sei sicuro di voler procedere?", "Stai modificando una MasterPassword", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                            Credentials.ModifyMasterPassword(this.Model.NewCredentialPassword);
+                    }
                     else
-                        Credentials.Modify(this.Model.ModifyCredentialID, this.Model.CredentialGroupID.GetValueOrDefault(), this.Model.NewCredentialTitle, this.Model.NewCredentialUsername, this.Model.NewCredentialEmail, this.Model.NewCredentialPassword, this.Model.NewCredentialUrl, this.Model.NewCredentialNotes, this.Model.NewCredentialExpires);
+                        Credentials.Modify(this.Model.ModifyCredentialID, this.Model.GroupSelected, this.Model.NewCredentialTitle, this.Model.NewCredentialUsername, this.Model.NewCredentialEmail, this.Model.NewCredentialPassword, this.Model.NewCredentialUrl, this.Model.NewCredentialNotes, this.Model.NewCredentialExpires);
                 else
-                    Credentials.Add(this.Model.CredentialGroupID.GetValueOrDefault(), this.Model.NewCredentialTitle, this.Model.NewCredentialUsername, this.Model.NewCredentialEmail, this.Model.NewCredentialPassword, this.Model.NewCredentialUrl, this.Model.NewCredentialNotes, this.Model.NewCredentialExpires);
+                    Credentials.Add(this.Model.GroupSelected, this.Model.NewCredentialTitle, this.Model.NewCredentialUsername, this.Model.NewCredentialEmail, this.Model.NewCredentialPassword, this.Model.NewCredentialUrl, this.Model.NewCredentialNotes, this.Model.NewCredentialExpires);
             }
             catch(Exception ex)
             {
@@ -242,7 +248,7 @@ namespace SecretPassword
             this.Reset();
             try
             {
-                Credentials.Import(this.Model.GroupSelected?.ID);
+                Credentials.Import(this.Model.GroupSelected);
             }
             catch (Exception ex)
             {
@@ -272,7 +278,7 @@ namespace SecretPassword
         {
             try
             {
-                int errors = Credentials.ImportChrome(this.Model.GroupSelected?.ID);
+                int errors = Credentials.ImportChrome(this.Model.GroupSelected);
                 string msgError = errors > 0 ? $" {errors} record non sono stati importati per errori." : string.Empty;
                 MessageBox.Show($"Import completato.{msgError}");
             }

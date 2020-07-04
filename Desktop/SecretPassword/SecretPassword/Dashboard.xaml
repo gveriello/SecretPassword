@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SecretPassword"
         xmlns:converters="clr-namespace:SecretPassword.Converters"
         mc:Ignorable="d"
-        Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="500" WindowStartupLocation="CenterScreen">
+        Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="650" WindowStartupLocation="CenterScreen" ShowActivated="True" >
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
         <converters:InvertBoolConverter x:Key="InvertPropertyConverter" />
@@ -21,14 +21,14 @@
             <ColumnDefinition Width="8*" />
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top"  Grid.ColumnSpan="2" >
-            <Menu DockPanel.Dock="Top">
+            <Menu DockPanel.Dock="Top" Background="White">
                 <MenuItem Header="Gruppi">
                     <MenuItem Click="BtnGroupAdd_Click" Header="Aggiungi" />
                     <MenuItem Click="BtnGroupModify_Click" IsEnabled="{Binding IsGroupSelected}" Header="Modifica" />
                     <MenuItem Click="BtnGroupRemove_Click" IsEnabled="{Binding IsGroupSelected}" Header="Elimina"  />
                 </MenuItem>
                 <MenuItem Header="Credenziali">
-                    <MenuItem Click="BtnCredentialAdd_Click" Header="Aggiungi" />
+                    <MenuItem Click="BtnCredentialAdd_Click" IsEnabled="{Binding IsGroupSelected}" Header="Aggiungi" />
                     <MenuItem Click="BtnCredentialModify_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Modifica" />
                     <MenuItem Click="BtnCredentialRemove_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Elimina"  />
                     <MenuItem Click="BtnCredentialShare_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Condividi" />
@@ -46,7 +46,7 @@
                 </MenuItem>
             </Menu>
         </DockPanel>
-        <TreeView x:Name="tvGroups" Margin="0,0,0,0" Grid.Row="1" Grid.Column="0" >
+        <TreeView x:Name="tvGroups" Margin="5,0,0,0" Grid.Row="1" Grid.Column="0" BorderThickness="0">
             <TreeViewItem IsExpanded="True" x:Name="tviCredentialsWithoutGroups" Tag="0">
                 <TreeViewItem.Header>
                     <StackPanel Orientation="Horizontal">
@@ -69,10 +69,12 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <DataGrid IsReadOnly="True"  Grid.Row="0" SelectionMode="Single"
-                AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}">
+            <TextBlock Grid.Row="0" Text="Per iniziare, seleziona un gruppo. Clicca sul tab 'Credenziali' e poi 'Aggiungi'" Margin="5" />
+            <DataGrid BorderThickness="0" Background="White" IsReadOnly="True"  Grid.Row="0" SelectionMode="Single" x:Name="dgCredentials"
+                AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}" Margin="0,0,0,5">
                 <DataGrid.Columns>
                     <DataGridTextColumn Visibility="Collapsed" Header="ID" Binding="{Binding ID}" />
+                    <DataGridTextColumn x:Name="dgtcGroupName" Header="Gruppo" Binding="{Binding GroupOwner.Name}" />
                     <DataGridTextColumn Header="Titolo" Binding="{Binding Title}" />
                     <DataGridTextColumn Header="Username" Binding = "{Binding Username}"/>
                     <DataGridTextColumn Header="Email" Binding = "{Binding Email}"/>

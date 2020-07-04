@@ -39,6 +39,18 @@ namespace Models
                 RaiseProperChanged(nameof(this.IsGroupSelected));
             }
         }
+
+        public bool IsRootSelected {
+            get
+            {
+                if (this.GroupSelected != null || this.GroupSelectedObject == null)
+                    return false;
+
+                int tagGroup = 0;
+                int.TryParse(this.GroupSelectedObject?.ToString(), out tagGroup);
+                return tagGroup == 0;
+            }
+        }
         public Group GroupSelected
         {
             get { return this.GroupSelectedObject != null ? this.GroupSelectedObject as Group : null; }

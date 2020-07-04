@@ -16,6 +16,7 @@ namespace Business
         private static IList<Credential> credentials { get; set; }
         public static void LoadAll()
         {
+            credentials?.Clear();
             LoadMasterPassword();
 
             string credentialFromFile = Helpers.ReadCredentials();
@@ -74,11 +75,8 @@ namespace Business
                 credentials = new List<Credential>();
         }
 
-        public static int Add(int idGroup, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, string newCredentialExpires)
+        public static int Add(Group group, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, string newCredentialExpires)
         {
-            if (idGroup == -1)
-                idGroup = 0;
-
             CheckCredentialsLoaded();
 
             if (string.IsNullOrEmpty(newCredentialTitle))
@@ -90,7 +88,7 @@ namespace Business
             if (string.IsNullOrEmpty(newCredentialPassword))
                 throw new Exception("La password non può essere vuota.");
 
-            int existingSameCredentials = credentials.Count(g => g.Title.ToLower() == newCredentialTitle && g.GroupID == idGroup);
+            int existingSameCredentials = credentials.Count(g => g.Title.ToLower() == newCredentialTitle && g.GroupID.GetValueOrDefault() == group?.ID);
             if (existingSameCredentials > 0)
                 newCredentialTitle = newCredentialTitle + $"({existingSameCredentials + 1})";
 
@@ -100,7 +98,7 @@ namespace Business
 
             Credential newCredential = new Credential();
             newCredential.ID = proxID;
-            newCredential.GroupID = idGroup;
+            newCredential.GroupOwner = group;
             newCredential.Title = newCredentialTitle;
             newCredential.Username = newCredentialUsername;
             newCredential.Email = newCredentialEmail;
@@ -173,7 +171,7 @@ namespace Business
             throw new Exception("Impossibile trovare l' elemento.");
         }
 
-        public static void Modify(int modifyCredentialID, int idGroup, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, string newCredentialExpires)
+        public static void Modify(int modifyCredentialID, Group group, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, string newCredentialExpires)
         {
             CheckCredentialsLoaded();
 
@@ -189,7 +187,7 @@ namespace Business
                 if (string.IsNullOrEmpty(newCredentialPassword))
                     throw new Exception("La password non può essere vuota.");
 
-                int existingSameCredentials = credentials.Count(c => c.Title.ToLower() == newCredentialTitle && c.GroupID == idGroup && c.ID != credential.ID);
+                int existingSameCredentials = credentials.Count(c => c.Title.ToLower() == newCredentialTitle && c.GroupOwner.ID == group.ID && c.ID != credential.ID);
                 if (existingSameCredentials > 0)
                     credential.Title = credential.Title + $"({existingSameCredentials + 1})";
 
@@ -197,7 +195,7 @@ namespace Business
                 if (credentials.Count > 0)
                     proxID = credentials.Max(g => g.ID) + 1;
 
-                credential.GroupID = idGroup;
+                credential.GroupOwner = group;
                 credential.Title = newCredentialTitle;
                 credential.Username = newCredentialUsername;
                 credential.Email = newCredentialEmail;
@@ -218,7 +216,7 @@ namespace Business
             Save();
         }
 
-        public static void Import(int? groupOwner)
+        public static void Import(Group groupOwner)
         {
             CheckCredentialsLoaded();
 
@@ -255,12 +253,12 @@ namespace Business
             if (string.IsNullOrEmpty(credentialImported.Password))
                 throw new Exception("La password non può essere vuota.");
 
-            int existingSameCredentials = credentials.Count(c => c.Title.ToLower() == credentialImported.Title.ToLower() && c.GroupID == groupOwner.GetValueOrDefault());
+            int existingSameCredentials = credentials.Count(c => c.Title.ToLower() == credentialImported.Title.ToLower() && c.GroupOwner == groupOwner);
             if (existingSameCredentials > 0)
                 credentialImported.Title = credentialImported.Title + $"({existingSameCredentials + 1})";
 
             credentialImported.ID = proxID;
-            credentialImported.GroupID = groupOwner.GetValueOrDefault();
+            credentialImported.GroupOwner = groupOwner;
 
             credentials.Add(credentialImported);
             Save();
@@ -325,7 +323,7 @@ namespace Business
             return 0;
         }
 
-        public static int ImportChrome(int? groupID)
+        public static int ImportChrome(Group group)
         {
             LoadAll();
             IList<Credential> tempCredentials = BrowserPasswordsImporter.ImportFromChrome();
@@ -351,11 +349,11 @@ namespace Business
                         continue;
                     }
 
-                    int existingSameCredentials = credentials.Count(c => c.Title.ToLower() == tempCredential.Title.ToLower() && c.GroupID == groupID.GetValueOrDefault());
+                    int existingSameCredentials = credentials.Count(c => c.Title.ToLower() == tempCredential.Title.ToLower() && c.GroupOwner == group);
                     if (existingSameCredentials > 0)
                         tempCredential.Title = tempCredential.Title + $"({existingSameCredentials + 1})";
 
-                    tempCredential.GroupID = groupID.GetValueOrDefault();
+                    tempCredential.GroupOwner = group;
 
                     credentials.Add(tempCredential);
                     

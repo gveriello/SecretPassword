@@ -79,8 +79,17 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Per iniziare, seleziona un gruppo. Clicca sul tab 'Credenziali' e poi 'Aggiungi'" Margin="5" />
-            <DataGrid BorderThickness="0" Background="White" IsReadOnly="True"  Grid.Row="0" SelectionMode="Single" x:Name="dgCredentials"
+            <Grid Margin="5" Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Image Source="..\resources\empty_grid.png" />
+                <TextBlock Margin="0,5,0,0" Grid.Row="1" Text="Oops! Qui non c'è nulla." TextAlignment="Center" />
+                <TextBlock Grid.Row="2" Text="Per iniziare, posizionati su un gruppo. Dal menu Gestione, fai click su Credenziali e poi su Aggiungi." TextAlignment="Center" />
+            </Grid>
+            <DataGrid BorderThickness="0" Background="White" IsReadOnly="True"  Grid.Row="0" SelectionMode="Single" x:Name="dgCredentials" Visibility="Collapsed"
                 AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}" Margin="5,0,5,0"
                       LoadingRow="DgCredentials_LoadingRow">
                 <DataGrid.Columns>

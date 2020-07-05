@@ -187,6 +187,7 @@ namespace Business
             return File.ReadAllText(fileName).Decrypt(UsersSalt);
         }
     }
+
     public static class Crypto
     {
         private const int Keysize = 256;

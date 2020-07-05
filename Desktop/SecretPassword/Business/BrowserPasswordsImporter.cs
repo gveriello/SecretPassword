@@ -37,7 +37,7 @@ namespace Business
                         catch(Exception ex)
                         {
                             if (ex.Message.ToString().ToLower().Contains("database is locked"))
-                                throw new Exception("Il processo di Google Chrome sta bloccando l' importazione delle utenze. Killare il processo tramite Task Manager e riprovare.");
+                                throw new Exception("Google Chrome sta bloccando l' importazione delle utenze. Killare il processo tramite Task Manager e riprovare.");
                         }
                         finally
                         {

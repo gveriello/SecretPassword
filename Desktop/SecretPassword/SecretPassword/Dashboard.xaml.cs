@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using System.Configuration;
 using System.Windows.Data;
 using System.Globalization;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace SecretPassword
 {
@@ -89,6 +91,41 @@ namespace SecretPassword
             row.ShowPassword = !row.ShowPassword && Helpers.ConvalidateSalt(isRequired: false);
             this.Topmost = true;
             this.Model.ReloadCredentialsGrid();
+        }
+
+        private void OpenURL(object sender, RoutedEventArgs e)
+        {
+            Credential row = (sender as Button).DataContext as Credential;
+            if (string.IsNullOrEmpty(row.Url))
+                return;
+
+            this.Topmost = false;
+            string url = row.Url;
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            this.Topmost = true;
         }
 
         private void ReloadCredentialsSource()
@@ -290,6 +327,11 @@ namespace SecretPassword
             {
                 this.ReloadCredentialsSource();
             }
+        }
+
+        private void DgCredentials_LoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1 ).ToString();
         }
     }
 

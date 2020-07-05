@@ -10,6 +10,8 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
         <converters:InvertBoolConverter x:Key="InvertPropertyConverter" />
+        <converters:VisibleIfValidUrlConverter x:Key="VisibleIfValidUrlConverter" />
+        <converters:TruncateStringConverter x:Key="TruncateStringConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -17,21 +19,29 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="8*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top"  Grid.ColumnSpan="2" >
             <Menu DockPanel.Dock="Top" Background="White">
-                <MenuItem Header="Gruppi">
-                    <MenuItem Click="BtnGroupAdd_Click" Header="Aggiungi" />
-                    <MenuItem Click="BtnGroupModify_Click" IsEnabled="{Binding IsGroupSelected}" Header="Modifica" />
-                    <MenuItem Click="BtnGroupRemove_Click" IsEnabled="{Binding IsGroupSelected}" Header="Elimina"  />
+                <MenuItem Header="Cloud" Visibility="Collapsed">
+                    <MenuItem Header="Accedi" />
+                    <MenuItem Header="Registrati" />
+                    <MenuItem Header="Sincronizza" />
                 </MenuItem>
-                <MenuItem Header="Credenziali">
-                    <MenuItem Click="BtnCredentialAdd_Click" IsEnabled="{Binding IsGroupSelected}" Header="Aggiungi" />
-                    <MenuItem Click="BtnCredentialModify_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Modifica" />
-                    <MenuItem Click="BtnCredentialRemove_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Elimina"  />
-                    <MenuItem Click="BtnCredentialShare_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Condividi" />
+                <MenuItem Header="Gestione">
+                    <MenuItem Header="Gruppi">
+                        <MenuItem Click="BtnGroupAdd_Click" Header="Aggiungi" />
+                        <MenuItem Click="BtnGroupModify_Click" IsEnabled="{Binding IsGroupSelected}" Header="Modifica" />
+                        <MenuItem Click="BtnGroupRemove_Click" IsEnabled="{Binding IsGroupSelected}" Header="Elimina"  />
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Credenziali">
+                        <MenuItem Click="BtnCredentialAdd_Click" IsEnabled="{Binding IsGroupSelected}" Header="Aggiungi" />
+                        <MenuItem Click="BtnCredentialModify_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Modifica" />
+                        <MenuItem Click="BtnCredentialRemove_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Elimina"  />
+                        <MenuItem Click="BtnCredentialShare_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Condividi" />
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="Manutenzione">
                     <MenuItem Click="BtnCredentialBackup_Click" Header="Crea backup" />
@@ -71,14 +81,15 @@
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" Text="Per iniziare, seleziona un gruppo. Clicca sul tab 'Credenziali' e poi 'Aggiungi'" Margin="5" />
             <DataGrid BorderThickness="0" Background="White" IsReadOnly="True"  Grid.Row="0" SelectionMode="Single" x:Name="dgCredentials"
-                AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}" Margin="0,0,0,5">
+                AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}" Margin="5,0,5,0"
+                      LoadingRow="DgCredentials_LoadingRow">
                 <DataGrid.Columns>
                     <DataGridTextColumn Visibility="Collapsed" Header="ID" Binding="{Binding ID}" />
-                    <DataGridTextColumn x:Name="dgtcGroupName" Header="Gruppo" Binding="{Binding GroupOwner.Name}" />
-                    <DataGridTextColumn Header="Titolo" Binding="{Binding Title}" />
-                    <DataGridTextColumn Header="Username" Binding = "{Binding Username}"/>
-                    <DataGridTextColumn Header="Email" Binding = "{Binding Email}"/>
-                    <DataGridTemplateColumn Header="Password">
+                    <DataGridTextColumn Width="Auto" x:Name="dgtcGroupName" Header="Gruppo" Binding="{Binding GroupOwner.Name}" />
+                    <DataGridTextColumn Width="Auto" Header="Titolo" Binding="{Binding Title}" />
+                    <DataGridTextColumn Width="Auto" Header="Username" Binding = "{Binding Username}"/>
+                    <DataGridTextColumn Width="Auto" Header="Email" Binding = "{Binding Email}"/>
+                    <DataGridTemplateColumn Header="Password" Width="Auto">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -95,9 +106,25 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridHyperlinkColumn Header="Url" Binding="{Binding Url}" />
-                    <DataGridTextColumn Header="Note" Binding="{Binding Notes}" />
-                    <DataGridTextColumn Header="Data di scadenza" Binding="{Binding Expires}" />
+                    <DataGridTemplateColumn Header="Url" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid Visibility="{Binding Url, Converter={StaticResource VisibleIfValidUrlConverter}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Click="OpenURL" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                        <Image Source="..\resources\open_link.png" Height="20" Width="20" ToolTip="Visita URL" />
+                                    </Button>
+                                    <TextBlock Grid.Column="1" Text="{Binding Url, Converter={StaticResource TruncateStringConverter}, ConverterParameter=20}"  />
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Width="*" Header="Note" Binding="{Binding Notes, Converter={StaticResource TruncateStringConverter}, ConverterParameter=50}" />
+                    <DataGridTextColumn Width="Auto" Header="Data di scadenza" Binding="{Binding Expires}" />
+                    <DataGridTextColumn Width="*" />
                 </DataGrid.Columns>
             </DataGrid>
             <Grid Grid.Row="1" Visibility="{Binding AddModifyGroups, Converter={StaticResource VisibleIfTrueConverter}}">

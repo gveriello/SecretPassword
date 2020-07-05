@@ -21,7 +21,7 @@ namespace Models
         string _NewCredentialEmail;
         string _NewCredentialPassword;
         string _NewCredentialUrl;
-        string _NewCredentialExpires;
+        DateTime? _NewCredentialExpires;
         string _NewCredentialNotes;
         string _ShareCredentialString;
         bool _ModifyGroup;
@@ -312,7 +312,7 @@ namespace Models
                 RaiseProperChanged();
             }
         }
-        public string NewCredentialExpires
+        public DateTime? NewCredentialExpires
         {
             get
             {
@@ -345,7 +345,7 @@ namespace Models
             this.NewCredentialPassword = string.Empty;
             this.NewCredentialUrl = string.Empty;
             this.NewCredentialNotes = string.Empty;
-            this.NewCredentialExpires = string.Empty;
+            this.NewCredentialExpires = DateTime.Today;
         }
 
         /* INotifyPropertyChanged */

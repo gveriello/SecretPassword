@@ -75,7 +75,7 @@ namespace Business
                 credentials = new List<Credential>();
         }
 
-        public static int Add(Group group, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, string newCredentialExpires)
+        public static int Add(Group group, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, DateTime? newCredentialExpires)
         {
             CheckCredentialsLoaded();
 
@@ -105,13 +105,7 @@ namespace Business
             newCredential.Password = newCredentialPassword;
             newCredential.Notes = newCredentialNotes;
             newCredential.Url = newCredentialUrl;
-
-            if (!string.IsNullOrEmpty(newCredentialExpires))
-            {
-                DateTime expires = new DateTime();
-                DateTime.TryParse(newCredentialExpires, out expires);
-                newCredential.Expires = expires;
-            }
+            newCredential.Expires = newCredentialExpires;
 
             credentials.Add(newCredential);
             credentials = credentials.OrderBy(c => c.ID).ToList();
@@ -171,7 +165,7 @@ namespace Business
             throw new Exception("Impossibile trovare l' elemento.");
         }
 
-        public static void Modify(int modifyCredentialID, Group group, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, string newCredentialExpires)
+        public static void Modify(int modifyCredentialID, Group group, string newCredentialTitle, string newCredentialUsername, string newCredentialEmail, string newCredentialPassword, string newCredentialUrl, string newCredentialNotes, DateTime? newCredentialExpires)
         {
             CheckCredentialsLoaded();
 
@@ -202,13 +196,7 @@ namespace Business
                 credential.Password = newCredentialPassword;
                 credential.Notes = newCredentialNotes;
                 credential.Url = newCredentialUrl;
-
-                if (!string.IsNullOrEmpty(newCredentialExpires))
-                {
-                    DateTime expires = new DateTime();
-                    DateTime.TryParse(newCredentialExpires, out expires);
-                    credential.Expires = expires;
-                }
+                credential.Expires = newCredentialExpires;
                 credentials.Remove(credential);
                 credentials.Add(credential);
                 credentials = credentials.OrderBy(c => c.ID).ToList();

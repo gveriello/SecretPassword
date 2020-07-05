@@ -263,7 +263,7 @@ namespace SecretPassword
                 this.Model.NewCredentialEmail = this.Model.CredentialSelected.Email;
                 this.txtNewPassword.Password = this.Model.CredentialSelected.Password;
                 this.Model.NewCredentialUrl = this.Model.CredentialSelected.Url;
-                this.Model.NewCredentialExpires = this.Model.CredentialSelected.Expires.ToString();
+                this.Model.NewCredentialExpires = this.Model.CredentialSelected.Expires;
                 this.Model.NewCredentialNotes = this.Model.CredentialSelected.Notes;
             }
             this.Model.ModifyCredential = !this.Model.ModifyCredential;
@@ -285,6 +285,7 @@ namespace SecretPassword
             this.Reset();
             try
             {
+                this.Topmost = false;
                 Credentials.Import(this.Model.GroupSelected);
             }
             catch (Exception ex)
@@ -294,13 +295,14 @@ namespace SecretPassword
             finally
             {
                 this.ReloadCredentialsSource();
+                this.Topmost = true;
             }
         }
 
         private void BtnCredentialBackup_Click(object sender, RoutedEventArgs e)
         {
             Credentials.CreateBackup();
-            MessageBox.Show($"Backup creato in {Path.Combine(Directory.GetCurrentDirectory(), "backup")}.{Environment.NewLine}Affinchè possa essere reimportato correttamente, è necessario che la password impostata di default non cambi.");
+            MessageBox.Show($"Backup creato in {Path.Combine(Directory.GetCurrentDirectory(), "backup")}.{Environment.NewLine}Affinchè possa essere reimportato correttamente, è necessario che la Master Password non cambi.");
         }
 
         private void BtnCredentialImportBackup_Click(object sender, RoutedEventArgs e)

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SecretPassword"
         xmlns:converters="clr-namespace:SecretPassword.Converters"
         mc:Ignorable="d"
-        Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="650" WindowStartupLocation="CenterScreen" ShowActivated="True" >
+        Title="SecretPassword - Dashboard" MinHeight="450" MinWidth="800" WindowStartupLocation="CenterScreen" ShowActivated="True" >
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
         <converters:InvertBoolConverter x:Key="InvertPropertyConverter" />
@@ -122,9 +122,8 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
+                    <DataGridTextColumn Width="Auto" Header="Data di scadenza" Binding="{Binding Path=Expires, StringFormat='dd/MM/yyyy'}"/>
                     <DataGridTextColumn Width="*" Header="Note" Binding="{Binding Notes, Converter={StaticResource TruncateStringConverter}, ConverterParameter=50}" />
-                    <DataGridTextColumn Width="Auto" Header="Data di scadenza" Binding="{Binding Expires}" />
-                    <DataGridTextColumn Width="*" />
                 </DataGrid.Columns>
             </DataGrid>
             <Grid Grid.Row="1" Visibility="{Binding AddModifyGroups, Converter={StaticResource VisibleIfTrueConverter}}">
@@ -178,7 +177,7 @@
                 <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding NewCredentialUrl}" Margin="5" MaxLength="100" />
 
                 <TextBlock Grid.Column="0" Grid.Row="6" Text="Data di scadenza:" HorizontalAlignment="Left" TextWrapping="WrapWithOverflow" Margin="5"  />
-                <DatePicker Grid.Column="1" Grid.Row="6" Text="{Binding NewCredentialExpires}" Margin="5" />
+                <DatePicker Grid.Column="1" Grid.Row="6" SelectedDate="{Binding NewCredentialExpires}" Margin="5"   />
 
                 <TextBlock Grid.Column="0" Grid.Row="7" Text="Note:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
                 <TextBox MaxLines="5" Grid.Column="1" Grid.Row="7" Text="{Binding NewCredentialNotes}" Margin="5" AcceptsReturn="True" MaxLength="9999" />

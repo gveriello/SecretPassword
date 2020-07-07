@@ -12,6 +12,7 @@
         <converters:InvertBoolConverter x:Key="InvertPropertyConverter" />
         <converters:VisibleIfValidUrlConverter x:Key="VisibleIfValidUrlConverter" />
         <converters:TruncateStringConverter x:Key="TruncateStringConverter" />
+        <converters:VisibleIfValidString x:Key="VisibleIfValidString" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -96,21 +97,55 @@
                     <DataGridTextColumn Visibility="Collapsed" Header="ID" Binding="{Binding ID}" />
                     <DataGridTextColumn Width="Auto" x:Name="dgtcGroupName" Header="Gruppo" Binding="{Binding GroupOwner.Name}" />
                     <DataGridTextColumn Width="Auto" Header="Titolo" Binding="{Binding Title}" />
-                    <DataGridTextColumn Width="Auto" Header="Username" Binding = "{Binding Username}"/>
-                    <DataGridTextColumn Width="Auto" Header="Email" Binding = "{Binding Email}"/>
+                    <DataGridTemplateColumn Header="Username" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid  Visibility="{Binding Username, Converter={StaticResource VisibleIfValidString}}" >
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Click="CopyTextInClipBoard" Tag="{Binding Username}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                        <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
+                                    </Button>
+                                    <TextBox Grid.Column="1" Text="{Binding Username}" IsReadOnly="True" />
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Email" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid   Visibility="{Binding Email, Converter={StaticResource VisibleIfValidString}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Click="CopyTextInClipBoard" Tag="{Binding Email}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                        <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
+                                    </Button>
+                                    <TextBox Grid.Column="1" Text="{Binding Email}" IsReadOnly="True" />
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="Password" Width="Auto">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition />
                                     </Grid.ColumnDefinitions>
                                     <Button Grid.Column="0" Click="ShowHidePassword" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
                                         <Image Source="..\resources\show_password.png" Height="20" Width="20" ToolTip="Mostra/Nascondi password" />
                                     </Button>
-                                    <TextBlock Grid.Column="1" Text="**********" Visibility="{Binding ShowPassword, Converter={StaticResource InvertPropertyConverter}}"  />
-                                    <TextBox Grid.Column="1" Text="{Binding Password}" IsReadOnly="True" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" />
+                                    <Button Grid.Column="1" Click="CopyTextInClipBoard" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" Tag="{Binding Password}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                        <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
+                                    </Button>
+                                    <TextBlock Grid.Column="2" Text="**********" Visibility="{Binding ShowPassword, Converter={StaticResource InvertPropertyConverter}}"  />
+                                    <TextBox Grid.Column="2" Text="{Binding Password}" IsReadOnly="True" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" />
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

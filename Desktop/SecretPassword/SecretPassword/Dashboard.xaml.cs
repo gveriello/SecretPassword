@@ -93,6 +93,15 @@ namespace SecretPassword
             this.Model.ReloadCredentialsGrid();
         }
 
+        private void CopyTextInClipBoard(object sender, RoutedEventArgs e)
+        {
+            string textToCopy = (sender as Button)?.Tag?.ToString();
+            if (string.IsNullOrEmpty(textToCopy))
+                return;
+
+            Clipboard.SetText(textToCopy);
+        }
+
         private void OpenURL(object sender, RoutedEventArgs e)
         {
             Credential row = (sender as Button).DataContext as Credential;

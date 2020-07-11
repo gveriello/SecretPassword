@@ -164,13 +164,20 @@
                                     <Button Grid.Column="0" Click="OpenURL" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
                                         <Image Source="..\resources\open_link.png" Height="20" Width="20" ToolTip="Visita URL" />
                                     </Button>
-                                    <TextBlock Grid.Column="1" Text="{Binding Url, Converter={StaticResource TruncateStringConverter}, ConverterParameter=20}"  />
+                                    <TextBlock Grid.Column="1" Text="{Binding Url, Converter={StaticResource TruncateStringConverter}, ConverterParameter=20}" ToolTip="{Binding Url}"  />
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Width="Auto" Header="Data di scadenza" Binding="{Binding Path=Expires, StringFormat='dd/MM/yyyy'}"/>
-                    <DataGridTextColumn Width="*" Header="Note" Binding="{Binding Notes, Converter={StaticResource TruncateStringConverter}, ConverterParameter=50}" />
+
+                    <DataGridTemplateColumn Header="Note" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Grid.Column="1" Text="{Binding Notes, Converter={StaticResource TruncateStringConverter}, ConverterParameter=20}" ToolTip="{Binding Notes}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
             <Grid Grid.Row="1" Visibility="{Binding AddModifyGroups, Converter={StaticResource VisibleIfTrueConverter}}">

@@ -32,7 +32,7 @@ namespace SecretPassword
 
         private void LoadTree()
         {
-            if (!this.Model.IsLocked)
+            if (this.Model.IsLocked)
                 return;
 
             tviMyGroups.Items.Clear();
@@ -65,7 +65,7 @@ namespace SecretPassword
         {
             Helpers.CheckIfExistSalt();
             this.Model.IsLocked = !Helpers.ConvalidateSalt();
-            if (!this.CheckLockProgram())
+            if (this.CheckLockProgram())
                 return;
 
             this.Height = this.MinHeight;

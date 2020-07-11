@@ -27,6 +27,7 @@ namespace Models
         bool _ModifyGroup;
         bool _ModifyCredential;
         bool _ShareCredential;
+        private bool _isLocked;
 
         public object GroupSelectedObject
         {
@@ -67,6 +68,16 @@ namespace Models
             }
         }
         public IList<Group> GroupsSource { get; set; }
+
+        public bool IsLocked
+        {
+            get { return this._isLocked; }
+            set
+            {
+                this._isLocked = value;
+                RaiseProperChanged();
+            }
+        }
 
         public IList<Credential> CredentialsSource
         {

@@ -10,6 +10,7 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
         <converters:InvertBoolConverter x:Key="InvertPropertyConverter" />
+        <converters:VisibleInvertBoolConverter x:Key="VisibleInvertBoolConverter" />
         <converters:VisibleIfValidUrlConverter x:Key="VisibleIfValidUrlConverter" />
         <converters:TruncateStringConverter x:Key="TruncateStringConverter" />
         <converters:VisibleIfValidString x:Key="VisibleIfValidString" />
@@ -31,6 +32,8 @@
                     <MenuItem Header="Sincronizza" />
                 </MenuItem>
                 <MenuItem Header="Gestione">
+                    <MenuItem Header="Sblocca" Click="BtnUnlock_Click" Visibility="{Binding IsLocked, Converter={StaticResource VisibleIfTrueConverter}}" />
+                    <MenuItem Header="Blocca" Click="BtnLock_Click" Visibility="{Binding IsLocked, Converter={StaticResource VisibleInvertBoolConverter}}" />
                     <MenuItem Header="Gruppi">
                         <MenuItem Click="BtnGroupAdd_Click" Header="Aggiungi" />
                         <MenuItem Click="BtnGroupModify_Click" IsEnabled="{Binding IsGroupSelected}" Header="Modifica" />

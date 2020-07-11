@@ -25,6 +25,10 @@ namespace Business
         static string DatabaseCredentialsPath { get { return Path.Combine(AppDataPath, "dbac.sp"); } }
         static string UsersSalt { get; set; }
 
+        public static void Lock()
+        {
+            UsersSalt = string.Empty;
+        }
 
         public static string GetCredentialCripted(Credential credential)
         {

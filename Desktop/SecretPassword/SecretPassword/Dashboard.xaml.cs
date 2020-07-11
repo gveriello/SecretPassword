@@ -32,6 +32,9 @@ namespace SecretPassword
 
         private void LoadTree()
         {
+            if (!this.Model.IsLocked)
+                return;
+
             tviMyGroups.Items.Clear();
             this.Model.GroupsSource = Groups.LoadGroupsFromLocal();
             foreach (Group group in this.Model.GroupsSource)
@@ -55,17 +58,39 @@ namespace SecretPassword
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            this.Load();
+        }
+
+        private void Load()
+        {
+            Helpers.CheckIfExistSalt();
+            this.Model.IsLocked = !Helpers.ConvalidateSalt();
+            if (!this.CheckLockProgram())
+                return;
+
             this.Height = this.MinHeight;
             this.Width = this.MinWidth;
-            Helpers.CheckIfExistSalt();
-            Helpers.ConvalidateSalt(isRequired: true);
             this.Topmost = true;
             this.LoadTree();
             this.tvGroups.SelectedItemChanged += this.TvGroups_SelectedItemChanged;
         }
 
+        private bool CheckLockProgram()
+        {
+            if (this.Model.IsLocked)
+                MessageBox.Show("SecretPassword è attualmente lockato. Clicca su 'Gestione', quindi 'Sblocca' per unlockare le informazioni.");
+
+            return this.Model.IsLocked;
+        }
+
         private void TvGroups_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            if (this.CheckLockProgram())
+            {
+                e.Handled = true;
+                return;
+            }
+
             object tag = ((e.NewValue as TreeViewItem).Tag);
             this.Model.GroupSelectedObject = tag;
             this.Reset();
@@ -74,6 +99,9 @@ namespace SecretPassword
 
         private void Reset()
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Model.ClearNewCredential();
             this.txtNewPassword.Password = string.Empty;
             this.Model.ClearNewGroup();
@@ -86,6 +114,9 @@ namespace SecretPassword
 
         private void ShowHidePassword(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             Credential row = (sender as Button).DataContext as Credential;
             this.Topmost = false;
             row.ShowPassword = !row.ShowPassword && Helpers.ConvalidateSalt(isRequired: false);
@@ -95,6 +126,9 @@ namespace SecretPassword
 
         private void CopyTextInClipBoard(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             string textToCopy = (sender as Button)?.Tag?.ToString();
             if (string.IsNullOrEmpty(textToCopy))
                 return;
@@ -104,6 +138,9 @@ namespace SecretPassword
 
         private void OpenURL(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             Credential row = (sender as Button).DataContext as Credential;
             if (string.IsNullOrEmpty(row.Url))
                 return;
@@ -139,11 +176,20 @@ namespace SecretPassword
 
         private void ReloadCredentialsSource()
         {
+            if (this.Model.IsLocked)
+            {
+                this.Model.CredentialsSource = null;
+                return;
+            }
+
             this.Model.CredentialsSource = Credentials.LoadCredentialsLocalByGroupID(this.Model.CredentialGroupID.GetValueOrDefault());
         }
 
         private void BtnGroupAdd_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Reset();
             this.Model.AddGroup = !this.Model.AddGroup;
             this.Model.AddCredential = false;
@@ -151,12 +197,18 @@ namespace SecretPassword
 
         private void BtnCredentialAdd_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Reset();
             this.Model.AddCredential = !this.Model.AddCredential;
         }
 
         private void BtnSaveGroup_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             try
             {
                 if (this.Model.ModifyGroup)
@@ -184,12 +236,15 @@ namespace SecretPassword
 
         private void BtnSaveCredential_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             try
             {
                 if (this.Model.ModifyCredential)
                     if (this.Model.ModifyCredentialID == 0)
                     {
-                        if (MessageBox.Show("Modificando una Master Password, potresti perdere alcune informazioni. Sei sicuro di voler procedere?", "Stai modificando una MasterPassword", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                        if (MessageBox.Show("Modificando la Master Password, potresti perdere alcune informazioni. Sei sicuro di voler procedere?", "Stai modificando la Master Password", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                             Credentials.ModifyMasterPassword(this.Model.NewCredentialPassword);
                     }
                     else
@@ -217,6 +272,9 @@ namespace SecretPassword
 
         private void BtnCredentialRemove_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Reset();
             try
             {
@@ -232,6 +290,9 @@ namespace SecretPassword
 
         private void BtnGroupRemove_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Reset();
             try
             {
@@ -250,6 +311,9 @@ namespace SecretPassword
 
         private void BtnGroupModify_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Reset();
             if (!this.Model.ModifyGroup)
             {
@@ -263,6 +327,9 @@ namespace SecretPassword
 
         private void BtnCredentialModify_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Reset();
             if (!this.Model.ModifyCredential)
             {
@@ -280,6 +347,9 @@ namespace SecretPassword
 
         private void BtnCredentialShare_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Reset();
             if (!this.Model.ShareCredential)
             {
@@ -291,6 +361,9 @@ namespace SecretPassword
 
         private void BtnCredentialImport_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             this.Reset();
             try
             {
@@ -310,12 +383,18 @@ namespace SecretPassword
 
         private void BtnCredentialBackup_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             Credentials.CreateBackup();
             MessageBox.Show($"Backup creato in {Path.Combine(Directory.GetCurrentDirectory(), "backup")}.{Environment.NewLine}Affinchè possa essere reimportato correttamente, è necessario che la Master Password non cambi.");
         }
 
         private void BtnCredentialImportBackup_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             int errors = Credentials.ImportBackup();
             string msgError = errors > 0 ? $" {errors} record non sono stati importati per errori." : string.Empty;
             MessageBox.Show($"Import completato.{msgError}");
@@ -324,6 +403,9 @@ namespace SecretPassword
 
         private void BtnCredentialImportChrome_Click(object sender, RoutedEventArgs e)
         {
+            if (this.CheckLockProgram())
+                return;
+
             try
             {
                 int errors = Credentials.ImportChrome(this.Model.GroupSelected);
@@ -343,6 +425,21 @@ namespace SecretPassword
         private void DgCredentials_LoadingRow(object sender, DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1 ).ToString();
+        }
+
+        private void BtnLock_Click(object sender, RoutedEventArgs e)
+        {
+            this.Model.IsLocked = true;
+            this.LoadTree();
+            this.ReloadCredentialsSource();
+            Helpers.Lock();
+        }
+
+        private void BtnUnlock_Click(object sender, RoutedEventArgs e)
+        {
+            this.Topmost = false;
+            this.Load();
+            this.ReloadCredentialsSource();
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using Entities;
+using IronBarCode;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
@@ -268,11 +269,13 @@ namespace Business
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog().GetValueOrDefault())
             {
-                string stream = Helpers.ReadBackup(openFileDialog.FileName);
+                string saltToDecrypt = Helpers.AskSalt(true);
+                string stream = Helpers.ReadBackup(openFileDialog.FileName, saltToDecrypt);
                 if (!string.IsNullOrEmpty(stream))
                 {
                     IList<Credential> tempCredentials = JsonConvert.DeserializeObject<IList<Credential>>(stream).ToList();
                     int msgError = 0;
+                    
                     if (tempCredentials?.Count > 0)
                     {
                         foreach(Credential tempCredential in tempCredentials)
@@ -350,6 +353,37 @@ namespace Business
                 return msgError;
             }
             return 0;
+        }
+
+        public static byte[] BuildQRCode(Credential credentialSelected)
+        {
+            if (credentialSelected != null)
+            {
+
+                string stringToShow = string.Empty;
+                stringToShow += credentialSelected.Title.ToUpper();
+                if (!string.IsNullOrEmpty(credentialSelected.Url))
+                    stringToShow += " (Url: " + credentialSelected.Url + ")";
+                stringToShow += Environment.NewLine;
+
+                if (!string.IsNullOrEmpty(credentialSelected.Email))
+                {
+                    stringToShow += "Email: " + credentialSelected.Email;
+                    stringToShow += Environment.NewLine;
+                }
+                if (!string.IsNullOrEmpty(credentialSelected.Username))
+                {
+                    stringToShow += "Username: " + credentialSelected.Username;
+                    stringToShow += Environment.NewLine;
+                }
+                stringToShow += "Password: " + credentialSelected.Password + Environment.NewLine;
+
+                GeneratedBarcode qrCode = BarcodeWriter.CreateBarcode(stringToShow, BarcodeWriterEncoding.QRCode, 200, 200);
+                qrCode.AddAnnotationTextBelowBarcode(credentialSelected.Title);
+                return qrCode.ToPngBinaryData();
+            }
+
+            return null;
         }
     }
 }

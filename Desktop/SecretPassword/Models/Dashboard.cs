@@ -27,7 +27,9 @@ namespace Models
         bool _ModifyGroup;
         bool _ModifyCredential;
         bool _ShareCredential;
-        private bool _isLocked;
+        bool _isLocked;
+        bool _buildQrCode;
+        byte[] _qrCodeToShare;
 
         public object GroupSelectedObject
         {
@@ -35,9 +37,9 @@ namespace Models
             set
             {
                 this._groupSelectedObject = value;
-                RaiseProperChanged();
-                RaiseProperChanged(nameof(this.GroupSelected));
-                RaiseProperChanged(nameof(this.IsGroupSelected));
+                PropertyIsChanged();
+                PropertyIsChanged(nameof(this.GroupSelected));
+                PropertyIsChanged(nameof(this.IsGroupSelected));
             }
         }
 
@@ -63,11 +65,24 @@ namespace Models
             set
             {
                 this._credentialSelected = value;
-                RaiseProperChanged();
-                RaiseProperChanged(nameof(this.IsCredentialSelected));
+                PropertyIsChanged();
+                PropertyIsChanged(nameof(this.IsCredentialSelected));
             }
         }
         public IList<Group> GroupsSource { get; set; }
+
+
+
+        public bool BuildQRCode
+        {
+            get { return this._buildQrCode; }
+            set
+            {
+                this._buildQrCode = value;
+                PropertyIsChanged();
+                PropertyIsChanged(nameof(this.OperationInProgress));
+            }
+        }
 
         public bool IsLocked
         {
@@ -75,7 +90,7 @@ namespace Models
             set
             {
                 this._isLocked = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
 
@@ -91,7 +106,7 @@ namespace Models
 
         public void ReloadCredentialsGrid()
         {
-            RaiseProperChanged(nameof(this.Credentials));
+            PropertyIsChanged(nameof(this.Credentials));
         }
 
         public void ClearModifyCredential()
@@ -109,6 +124,8 @@ namespace Models
 
         public void ClearShare()
         {
+            this.BuildQRCode = false;
+            this.QrCodeToShare = null;
             this.ShareCredential = false;
             this.ShareCredentialString = string.Empty;
         }
@@ -164,8 +181,9 @@ namespace Models
             set
             {
                 this._AddGroup = value;
-                RaiseProperChanged();
-                RaiseProperChanged(nameof(this.AddModifyGroups));
+                PropertyIsChanged();
+                PropertyIsChanged(nameof(this.AddModifyGroups));
+                PropertyIsChanged(nameof(this.OperationInProgress));
             }
         }
         public bool ModifyGroup
@@ -174,8 +192,9 @@ namespace Models
             set
             {
                 this._ModifyGroup = value;
-                RaiseProperChanged();
-                RaiseProperChanged(nameof(this.AddModifyGroups));
+                PropertyIsChanged();
+                PropertyIsChanged(nameof(this.AddModifyGroups));
+                PropertyIsChanged(nameof(this.OperationInProgress));
             }
         }
         public int ModifyGroupID { get; set; }
@@ -184,14 +203,21 @@ namespace Models
         {
             get { return this.AddCredential || this.ModifyCredential; }
         }
+
+        public bool OperationInProgress
+        {
+            get { return this.AddModifyGroups || this.AddModifyCredential || this.ShareCredential || this.BuildQRCode; }
+        }
+
         public bool AddCredential
         {
             get { return this._AddCredential; }
             set
             {
                 this._AddCredential = value;
-                RaiseProperChanged();
-                RaiseProperChanged(nameof(this.AddModifyCredential));
+                PropertyIsChanged();
+                PropertyIsChanged(nameof(this.AddModifyCredential));
+                PropertyIsChanged(nameof(this.OperationInProgress));
             }
         }
         public bool ModifyCredential
@@ -200,8 +226,9 @@ namespace Models
             set
             {
                 this._ModifyCredential = value;
-                RaiseProperChanged();
-                RaiseProperChanged(nameof(this.AddModifyCredential));
+                PropertyIsChanged();
+                PropertyIsChanged(nameof(this.AddModifyCredential));
+                PropertyIsChanged(nameof(this.OperationInProgress));
             }
         }
         public int ModifyCredentialID { get; set; }
@@ -211,7 +238,8 @@ namespace Models
             set
             {
                 this._ShareCredential = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
+                PropertyIsChanged(nameof(this.OperationInProgress));
             }
         }
         public string ShareCredentialString
@@ -223,7 +251,7 @@ namespace Models
             set
             {
                 this._ShareCredentialString = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
 
@@ -241,7 +269,7 @@ namespace Models
             set
             {
                 this._NewGroupName = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
         public string NewGroupNotes
@@ -253,7 +281,7 @@ namespace Models
             set
             {
                 this._NewGroupNotes = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
         public void ClearNewGroup()
@@ -272,7 +300,7 @@ namespace Models
             set
             {
                 this._NewCredentialTitle = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
         public string NewCredentialUsername
@@ -284,7 +312,7 @@ namespace Models
             set
             {
                 this._NewCredentialUsername = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
         public string NewCredentialEmail
@@ -296,7 +324,7 @@ namespace Models
             set
             {
                 this._NewCredentialEmail = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
         public string NewCredentialPassword
@@ -308,7 +336,7 @@ namespace Models
             set
             {
                 this._NewCredentialPassword = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
         public string NewCredentialUrl
@@ -320,7 +348,7 @@ namespace Models
             set
             {
                 this._NewCredentialUrl = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
         public DateTime? NewCredentialExpires
@@ -332,7 +360,7 @@ namespace Models
             set
             {
                 this._NewCredentialExpires = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
         public string NewCredentialNotes
@@ -344,9 +372,23 @@ namespace Models
             set
             {
                 this._NewCredentialNotes = value;
-                RaiseProperChanged();
+                PropertyIsChanged();
             }
         }
+
+        public byte[] QrCodeToShare
+        {
+            get
+            {
+                return this._qrCodeToShare;
+            }
+            set
+            {
+                this._qrCodeToShare = value;
+                PropertyIsChanged();
+            }
+        }
+
         public void ClearNewCredential()
         {
             this.AddCredential = false;
@@ -358,10 +400,9 @@ namespace Models
             this.NewCredentialNotes = string.Empty;
             this.NewCredentialExpires = DateTime.Today;
         }
-
         /* INotifyPropertyChanged */
         public event PropertyChangedEventHandler PropertyChanged;
-        private void RaiseProperChanged([CallerMemberName] string caller = "")
+        private void PropertyIsChanged([CallerMemberName] string caller = "")
         {
 
             if (PropertyChanged != null)

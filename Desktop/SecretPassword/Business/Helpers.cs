@@ -21,6 +21,29 @@ namespace Business
 #endif
 
         public static string AppDataPath { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), $"SecretPassword{EnvironmentKey}"); } }
+
+        public static void RegisterCustomUrlProtocol()
+        {
+            try
+            {
+                var KeyTest = Registry.CurrentUser.OpenSubKey("Software", true).OpenSubKey("Classes", true);
+                RegistryKey key = null;
+                key = KeyTest.OpenSubKey($"sp{EnvironmentKey}");
+                if (key != null)
+                    return;
+
+                key = KeyTest.CreateSubKey($"sp{EnvironmentKey}");
+                key.SetValue("URL Protocol", $"sp{EnvironmentKey}");
+                string path = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+                key.CreateSubKey(@"shell\open\command").SetValue("", "\"" + path + "\"");
+                //key.CreateSubKey(@"shell\open\command").SetValue("", "\"" + applicationPath + "\" \"%1\"");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.Message);
+            }
+        }
+
         static string DatabaseGroupsPath { get { return Path.Combine(AppDataPath, "dbag.sp"); } }
         static string DatabaseCredentialsPath { get { return Path.Combine(AppDataPath, "dbac.sp"); } }
         static string UsersSalt { get; set; }
@@ -104,27 +127,39 @@ namespace Business
 
             return AskSalt();
         }
-        public static string AskSalt(bool isRequired = false, bool isFirstAccess = false)
+
+        private static string AskQuestionToUser(string message, string title = "SecretPassword", bool isRequired = false, string messageToAddWhenFail = "Il campo è obbligatorio.")
         {
             bool isAsked = false;
-            while (true)
+            while(true)
             {
-                string messageToShow = string.Empty;
-                if (isFirstAccess)
-                    messageToShow = $"La password che inserirai verrà utilizzata per criptare/decriptare le tue informazioni in totale sicurezza.{Environment.NewLine}" +
-                        $"Ti verrà chiesta ogni volta che verrà effettuata un' operazione di sicurezza.";
-                if (isAsked && isRequired)
-                    messageToShow += $"{Environment.NewLine}La password è obbligatoria.";
+                string messageToShow = message;
+                if (isAsked)
+                    messageToShow = $"{messageToShow}{Environment.NewLine}{messageToAddWhenFail}";
 
-                string input = Interaction.InputBox(messageToShow, "Inserisci la password:");
-                if (!string.IsNullOrEmpty(input))
-                    return input;
+                string input = AskQuestionToUser(messageToShow, title);
 
                 if (!isRequired)
-                    return string.Empty;
+                    return input;
+
+                if (isRequired)
+                    if (!string.IsNullOrEmpty(input))
+                        return input;
 
                 isAsked = true;
             }
+        }
+
+        private static string AskQuestionToUser(string message, string title = "SecretPassword")
+        {
+            return Interaction.InputBox(message, title);
+        }
+
+        public static string AskSalt(bool isRequired = false, bool isFirstAccess = false)
+        {
+            bool isAsked = false;
+            return AskQuestionToUser($"La password che inserirai verrà utilizzata per criptare/decriptare le tue informazioni in totale sicurezza.{Environment.NewLine}" +
+                        $"Ti verrà chiesta ogni volta che verrà effettuata un' operazione di sicurezza.", "Inserisci la password", isRequired, $"{Environment.NewLine}La password è obbligatoria.");
         }
 
         public static string AskStream()
@@ -183,12 +218,12 @@ namespace Business
             return File.ReadAllText(DatabaseCredentialsPath).Decrypt(UsersSalt);
         }
 
-        public static string ReadBackup(string fileName)
+        public static string ReadBackup(string fileName, string userSalt)
         {
             CreateDatabasesIfNotExists();
             CheckIfExistSalt();
 
-            return File.ReadAllText(fileName).Decrypt(UsersSalt);
+            return File.ReadAllText(fileName).Decrypt(userSalt);
         }
     }
 

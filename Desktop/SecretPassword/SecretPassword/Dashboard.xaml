@@ -14,6 +14,7 @@
         <converters:VisibleIfValidUrlConverter x:Key="VisibleIfValidUrlConverter" />
         <converters:TruncateStringConverter x:Key="TruncateStringConverter" />
         <converters:VisibleIfValidString x:Key="VisibleIfValidString" />
+        <converters:ByteArrayToBitmapImageConverter x:Key="ByteArrayToBitmapImageConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -44,7 +45,7 @@
                         <MenuItem Click="BtnCredentialAdd_Click" IsEnabled="{Binding IsGroupSelected}" Header="Aggiungi" />
                         <MenuItem Click="BtnCredentialModify_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Modifica" />
                         <MenuItem Click="BtnCredentialRemove_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Elimina"  />
-                        <MenuItem Click="BtnCredentialShare_Click" IsEnabled="{Binding IsCredentialSelected}" Header="Condividi" />
+                        <MenuItem Click="ShowHideStreamToShare" IsEnabled="{Binding IsCredentialSelected}" Header="Condividi" />
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="Manutenzione">
@@ -78,182 +79,222 @@
 
         </TreeView>
         <Grid Margin="0,0,0,0"  Grid.Row="1" Grid.Column="1" >
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid Margin="5" Grid.Row="0">
+            <Grid Grid.Row="0" Visibility="{Binding OperationInProgress, Converter={StaticResource VisibleIfTrueConverter}}" >
                 <Grid.RowDefinitions>
-                    <RowDefinition />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Image Source="..\resources\empty_grid.png" />
-                <TextBlock Margin="0,5,0,0" Grid.Row="1" Text="Oops! Qui non c'è nulla." TextAlignment="Center" />
-                <TextBlock Grid.Row="2" Text="Per iniziare, posizionati su un gruppo. Dal menu Gestione, fai click su Credenziali e poi su Aggiungi." TextAlignment="Center" />
+                <Button Grid.Row="0" HorizontalAlignment="Right" Margin="5" Background="Transparent" BorderThickness="0" Click="CloseOperationPanel" >
+                    <Image Source="..\resources\close.png" Height="20" Width="20" ToolTip="Chiudi"  />
+                </Button>
+                <Grid Grid.Row="1" Visibility="{Binding AddModifyGroups, Converter={StaticResource VisibleIfTrueConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="100" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="7*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Aggiungi gruppo" Grid.Row="0" Margin="5" />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Nome: *" HorizontalAlignment="Left" Margin="5" />
+                    <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding NewGroupName}" Margin="5" MaxLength="100" />
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Note:" HorizontalAlignment="Left" Margin="5" />
+                    <TextBox MaxLines="5" Grid.Column="1" Grid.Row="2" Text="{Binding NewGroupNotes}" Margin="5" AcceptsReturn="True" MaxLength="9999" />
+                    <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" x:Name="btnSaveGroup" Click="BtnSaveGroup_Click" Content="Salva" Margin="5" />
+                </Grid>
+                <Grid Grid.Row="1" Visibility="{Binding AddModifyCredential, Converter={StaticResource VisibleIfTrueConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="100" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="7*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Aggiungi credenziali" Grid.Row="0" Margin="5" />
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Titolo: *" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                    <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding NewCredentialTitle}" Margin="5" MaxLength="100" />
+
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Email: *" HorizontalAlignment="Left" Margin="5" TextWrapping="WrapWithOverflow" />
+                    <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding NewCredentialEmail}" Margin="5" MaxLength="100" />
+
+                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Password: *" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                    <PasswordBox PasswordChar="*"  Grid.Column="1" Grid.Row="3" x:Name="txtNewPassword" PasswordChanged="PasswordBox_PasswordChanged" Margin="5" MaxLength="100" />
+
+                    <TextBlock Grid.Column="0" Grid.Row="4" Text="Username:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                    <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding NewCredentialUsername}" Margin="5" MaxLength="100" />
+
+                    <TextBlock Grid.Column="0" Grid.Row="5" Text="Url:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                    <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding NewCredentialUrl}" Margin="5" MaxLength="100" />
+
+                    <TextBlock Grid.Column="0" Grid.Row="6" Text="Data di scadenza:" HorizontalAlignment="Left" TextWrapping="WrapWithOverflow" Margin="5"  />
+                    <DatePicker Grid.Column="1" Grid.Row="6" SelectedDate="{Binding NewCredentialExpires}" Margin="5"   />
+
+                    <TextBlock Grid.Column="0" Grid.Row="7" Text="Note:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                    <TextBox MaxLines="5" Grid.Column="1" Grid.Row="7" Text="{Binding NewCredentialNotes}" Margin="5" AcceptsReturn="True" MaxLength="9999" />
+
+                    <Button Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" x:Name="btnSaveCredential" Click="BtnSaveCredential_Click" Content="Salva" Margin="5" />
+                </Grid>
+                <Grid Grid.Row="1" Visibility="{Binding ShareCredential, Converter={StaticResource VisibleIfTrueConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="7*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Condividi credenziali" Grid.Row="0" Margin="5" />
+                    <TextBlock  Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Text="Fornisci le seguenti informazioni a chi vuoi, per condividere le credenziali" HorizontalAlignment="Center" Margin="5"  TextWrapping="WrapWithOverflow" />
+                    <TextBlock Grid.Column="0"  Grid.Row="3" Text="Stream:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
+                    <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding ShareCredentialString}" Margin="5" IsReadOnly="True" />
+                </Grid>
+                <Grid Grid.Row="1" Visibility="{Binding BuildQRCode, Converter={StaticResource VisibleIfTrueConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="7*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Condividi credenziali" Grid.Row="0" Margin="5" />
+                    <TextBlock  Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Text="Fornisci il seguente QR Code a chi vuoi, per condividere le credenziali" HorizontalAlignment="Center" Margin="5"  TextWrapping="WrapWithOverflow" />
+                    <Image Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Height="200" Width="200" Source="{Binding QrCodeToShare, Converter={StaticResource ByteArrayToBitmapImageConverter}}" Margin="5" />
+                </Grid>
             </Grid>
-            <DataGrid BorderThickness="0" Background="White" IsReadOnly="True"  Grid.Row="0" SelectionMode="Single" x:Name="dgCredentials" Visibility="Collapsed"
+            <Grid Visibility="{Binding OperationInProgress, Converter={StaticResource VisibleInvertBoolConverter}}">
+                <Grid Margin="5" x:Name="grdOopsEmpty" Visibility="Visible" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Image Source="..\resources\empty_grid.png" />
+                    <TextBlock Margin="0,5,0,0" Grid.Row="1" Text="Oops! Qui non c'è nulla." TextAlignment="Center" />
+                    <TextBlock Grid.Row="2" Text="Per iniziare, posizionati su un gruppo. Dal menu Gestione, fai click su Credenziali e poi su Aggiungi." TextAlignment="Center" />
+                </Grid>
+                <DataGrid BorderThickness="0" Background="White" IsReadOnly="True"  Grid.Row="0"  SelectionMode="Single" x:Name="dgCredentials" Visibility="Collapsed"
                 AlternationCount = "2" AutoGenerateColumns = "False" ItemsSource="{Binding Credentials}" SelectedItem="{Binding CredentialSelected}" Margin="5,0,5,0"
                       LoadingRow="DgCredentials_LoadingRow">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Visibility="Collapsed" Header="ID" Binding="{Binding ID}" />
-                    <DataGridTextColumn Width="Auto" x:Name="dgtcGroupName" Header="Gruppo" Binding="{Binding GroupOwner.Name}" />
-                    <DataGridTextColumn Width="Auto" Header="Titolo" Binding="{Binding Title}" />
-                    <DataGridTemplateColumn Header="Username" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid  Visibility="{Binding Username, Converter={StaticResource VisibleIfValidString}}" >
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition />
-                                    </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Click="CopyTextInClipBoard" Tag="{Binding Username}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
-                                        <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
-                                    </Button>
-                                    <TextBox Grid.Column="1" Text="{Binding Username}" IsReadOnly="True" />
-                                </Grid>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Email" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid   Visibility="{Binding Email, Converter={StaticResource VisibleIfValidString}}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition />
-                                    </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Click="CopyTextInClipBoard" Tag="{Binding Email}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
-                                        <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
-                                    </Button>
-                                    <TextBox Grid.Column="1" Text="{Binding Email}" IsReadOnly="True" />
-                                </Grid>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Password" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition />
-                                    </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Click="ShowHidePassword" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
-                                        <Image Source="..\resources\show_password.png" Height="20" Width="20" ToolTip="Mostra/Nascondi password" />
-                                    </Button>
-                                    <Button Grid.Column="1" Click="CopyTextInClipBoard" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" Tag="{Binding Password}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
-                                        <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
-                                    </Button>
-                                    <TextBlock Grid.Column="2" Text="**********" Visibility="{Binding ShowPassword, Converter={StaticResource InvertPropertyConverter}}"  />
-                                    <TextBox Grid.Column="2" Text="{Binding Password}" IsReadOnly="True" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" />
-                                </Grid>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Url" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid Visibility="{Binding Url, Converter={StaticResource VisibleIfValidUrlConverter}}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition />
-                                    </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Click="OpenURL" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
-                                        <Image Source="..\resources\open_link.png" Height="20" Width="20" ToolTip="Visita URL" />
-                                    </Button>
-                                    <TextBlock Grid.Column="1" Text="{Binding Url, Converter={StaticResource TruncateStringConverter}, ConverterParameter=20}" ToolTip="{Binding Url}"  />
-                                </Grid>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Width="Auto" Header="Data di scadenza" Binding="{Binding Path=Expires, StringFormat='dd/MM/yyyy'}"/>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Visibility="Collapsed" Header="ID" Binding="{Binding ID}" />
+                        <DataGridTextColumn Width="Auto" x:Name="dgtcGroupName" Header="Gruppo" Binding="{Binding GroupOwner.Name}" />
+                        <DataGridTextColumn Width="Auto" Header="Titolo" Binding="{Binding Title}" />
+                        <DataGridTemplateColumn Header="Username" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid  Visibility="{Binding Username, Converter={StaticResource VisibleIfValidString}}" >
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Click="CopyTextInClipBoard" Tag="{Binding Username}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                            <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
+                                        </Button>
+                                        <TextBox Grid.Column="1" Text="{Binding Username}" IsReadOnly="True" />
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Email" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid   Visibility="{Binding Email, Converter={StaticResource VisibleIfValidString}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Click="CopyTextInClipBoard" Tag="{Binding Email}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                            <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
+                                        </Button>
+                                        <TextBox Grid.Column="1" Text="{Binding Email}" IsReadOnly="True" />
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Password" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Click="ShowHidePassword" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                            <Image Source="..\resources\show_password.png" Height="20" Width="20" ToolTip="Mostra/Nascondi password" />
+                                        </Button>
+                                        <Button Grid.Column="1" Click="CopyTextInClipBoard" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" Tag="{Binding Password}" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                            <Image Source="..\resources\copy_text.png" Height="20" Width="20" ToolTip="Copia negli appunti" />
+                                        </Button>
+                                        <TextBlock Grid.Column="2" Text="**********" Visibility="{Binding ShowPassword, Converter={StaticResource InvertPropertyConverter}}"  />
+                                        <TextBox Grid.Column="2" Text="{Binding Password}" IsReadOnly="True" Visibility="{Binding ShowPassword, Converter={StaticResource VisibleIfTrueConverter}}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Url" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid Visibility="{Binding Url, Converter={StaticResource VisibleIfValidUrlConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Click="OpenURL" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                            <Image Source="..\resources\open_link.png" Height="20" Width="20" ToolTip="Visita URL" />
+                                        </Button>
+                                        <TextBlock Grid.Column="1" Text="{Binding Url, Converter={StaticResource TruncateStringConverter}, ConverterParameter=20}" ToolTip="{Binding Url}"  />
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Width="Auto" Header="Data di scadenza" Binding="{Binding Path=Expires, StringFormat='dd/MM/yyyy'}"/>
+                        <DataGridTemplateColumn Header="Note" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Grid.Column="1" Text="{Binding Notes, Converter={StaticResource TruncateStringConverter}, ConverterParameter=20}" ToolTip="{Binding Notes}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Condividi" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Click="ShowHideQrCode" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                            <Image Source="..\resources\qr.png" Height="20" Width="20" ToolTip="QR code" />
+                                        </Button>
+                                        <Button Grid.Column="1" Click="ShowHideStreamToShare" Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                                            <Image Source="..\resources\share.png" Height="20" Width="20" ToolTip="Stream" />
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
 
-                    <DataGridTemplateColumn Header="Note" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Grid.Column="1" Text="{Binding Notes, Converter={StaticResource TruncateStringConverter}, ConverterParameter=20}" ToolTip="{Binding Notes}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
-            <Grid Grid.Row="1" Visibility="{Binding AddModifyGroups, Converter={StaticResource VisibleIfTrueConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="100" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="7*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Aggiungi gruppo" Grid.Row="0" Margin="5" />
-                <TextBlock Grid.Column="0" Grid.Row="1" Text="Nome: *" HorizontalAlignment="Left" Margin="5" />
-                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding NewGroupName}" Margin="5" MaxLength="100" />
-                <TextBlock Grid.Column="0" Grid.Row="2" Text="Note:" HorizontalAlignment="Left" Margin="5" />
-                <TextBox MaxLines="5" Grid.Column="1" Grid.Row="2" Text="{Binding NewGroupNotes}" Margin="5" AcceptsReturn="True" MaxLength="9999" />
-                <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" x:Name="btnSaveGroup" Click="BtnSaveGroup_Click" Content="Salva" Margin="5" />
             </Grid>
-            <Grid Grid.Row="1" Visibility="{Binding AddModifyCredential, Converter={StaticResource VisibleIfTrueConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="100" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="7*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Aggiungi credenziali" Grid.Row="0" Margin="5" />
-                <TextBlock Grid.Column="0" Grid.Row="1" Text="Titolo: *" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
-                <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding NewCredentialTitle}" Margin="5" MaxLength="100" />
-                
-                <TextBlock Grid.Column="0" Grid.Row="2" Text="Email: *" HorizontalAlignment="Left" Margin="5" TextWrapping="WrapWithOverflow" />
-                <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding NewCredentialEmail}" Margin="5" MaxLength="100" />
-
-                <TextBlock Grid.Column="0" Grid.Row="3" Text="Password: *" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
-                <PasswordBox PasswordChar="*"  Grid.Column="1" Grid.Row="3" x:Name="txtNewPassword" PasswordChanged="PasswordBox_PasswordChanged" Margin="5" MaxLength="100" />
-
-                <TextBlock Grid.Column="0" Grid.Row="4" Text="Username:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
-                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding NewCredentialUsername}" Margin="5" MaxLength="100" />
-
-                <TextBlock Grid.Column="0" Grid.Row="5" Text="Url:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
-                <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding NewCredentialUrl}" Margin="5" MaxLength="100" />
-
-                <TextBlock Grid.Column="0" Grid.Row="6" Text="Data di scadenza:" HorizontalAlignment="Left" TextWrapping="WrapWithOverflow" Margin="5"  />
-                <DatePicker Grid.Column="1" Grid.Row="6" SelectedDate="{Binding NewCredentialExpires}" Margin="5"   />
-
-                <TextBlock Grid.Column="0" Grid.Row="7" Text="Note:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
-                <TextBox MaxLines="5" Grid.Column="1" Grid.Row="7" Text="{Binding NewCredentialNotes}" Margin="5" AcceptsReturn="True" MaxLength="9999" />
-                
-                <Button Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" x:Name="btnSaveCredential" Click="BtnSaveCredential_Click" Content="Salva" Margin="5" />
-            </Grid>
-            <Grid Grid.Row="2" Visibility="{Binding ShareCredential, Converter={StaticResource VisibleIfTrueConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="7*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" FontSize="15" Text="Condividi credenziali" Grid.Row="0" Margin="5" />
-                <TextBlock  Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Text="Fornisci le seguenti informazioni con chi vuoi per condividere le credenziali" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
-                <TextBlock Grid.Column="0"  Grid.Row="3" Text="Stream:" HorizontalAlignment="Left" Margin="5"  TextWrapping="WrapWithOverflow" />
-                <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding ShareCredentialString}" Margin="5" IsReadOnly="True" />
-            </Grid>
+            
         </Grid>
     </Grid>
 </Window>

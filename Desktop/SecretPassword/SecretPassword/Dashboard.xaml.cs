@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Globalization;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Media.Imaging;
 
 namespace SecretPassword
 {
@@ -21,13 +22,21 @@ namespace SecretPassword
     {
         Dashboard Model { get; set; }
 
+
         public MainWindow()
         {
             InitializeComponent();
+            Helpers.RegisterCustomUrlProtocol();
             Helpers.CreateDatabasesIfNotExists();
             this.Model = new Dashboard();
             this.DataContext = this.Model;
             this.Loaded += this.MainWindow_Loaded;
+        }
+
+        public MainWindow(string[] args) 
+            : this()
+        {
+        //    MessageBox.Show(args.ToString());
         }
 
         private void LoadTree()
@@ -70,7 +79,7 @@ namespace SecretPassword
 
             this.Height = this.MinHeight;
             this.Width = this.MinWidth;
-            this.Topmost = true;
+            
             this.LoadTree();
             this.tvGroups.SelectedItemChanged += this.TvGroups_SelectedItemChanged;
         }
@@ -78,7 +87,7 @@ namespace SecretPassword
         private bool CheckLockProgram()
         {
             if (this.Model.IsLocked)
-                MessageBox.Show("SecretPassword è attualmente lockato. Clicca su 'Gestione', quindi 'Sblocca' per unlockare le informazioni.");
+                MessageBox.Show(LanguageResources.IsActuallyLocked);
 
             return this.Model.IsLocked;
         }
@@ -110,6 +119,7 @@ namespace SecretPassword
             this.Model.ClearShare();
             this.dgtcGroupName.Visibility = (this.Model.IsRootSelected) ? Visibility.Visible : Visibility.Collapsed;
             this.dgCredentials.Visibility = (this.Model.IsRootSelected || this.Model.IsGroupSelected) ? Visibility.Visible : Visibility.Collapsed;
+            this.grdOopsEmpty.Visibility = this.dgCredentials.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void ShowHidePassword(object sender, RoutedEventArgs e)
@@ -118,9 +128,9 @@ namespace SecretPassword
                 return;
 
             Credential row = (sender as Button).DataContext as Credential;
-            this.Topmost = false;
+            
             row.ShowPassword = !row.ShowPassword && Helpers.ConvalidateSalt(isRequired: false);
-            this.Topmost = true;
+            
             this.Model.ReloadCredentialsGrid();
         }
 
@@ -145,7 +155,7 @@ namespace SecretPassword
             if (string.IsNullOrEmpty(row.Url))
                 return;
 
-            this.Topmost = false;
+            
             string url = row.Url;
             try
             {
@@ -171,7 +181,7 @@ namespace SecretPassword
                     throw;
                 }
             }
-            this.Topmost = true;
+            
         }
 
         private void ReloadCredentialsSource()
@@ -244,7 +254,7 @@ namespace SecretPassword
                 if (this.Model.ModifyCredential)
                     if (this.Model.ModifyCredentialID == 0)
                     {
-                        if (MessageBox.Show("Modificando la Master Password, potresti perdere alcune informazioni. Sei sicuro di voler procedere?", "Stai modificando la Master Password", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                        if (MessageBox.Show(LanguageResources.Answer_ConfirmMasterPasswordModify, "Stai modificando la Master Password", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                             Credentials.ModifyMasterPassword(this.Model.NewCredentialPassword);
                     }
                     else
@@ -278,7 +288,7 @@ namespace SecretPassword
             this.Reset();
             try
             {
-                var result = MessageBox.Show("Sicuro di voler procedere?", "Elimina credenziali", MessageBoxButton.YesNo);
+                var result = MessageBox.Show(LanguageResources.Answer_ConfirmOperation, LanguageResources.DeleteCredentials, MessageBoxButton.YesNo);
                 if (result == MessageBoxResult.Yes)
                     Credentials.Delete(this.Model.CredentialSelected.ID);
             }
@@ -296,7 +306,7 @@ namespace SecretPassword
             this.Reset();
             try
             {
-                var result = MessageBox.Show("Sicuro di voler procedere? Verranno eliminate anche le credenziali associate", "Elimina gruppo", MessageBoxButton.YesNo);
+                var result = MessageBox.Show(LanguageResources.Answer_ConfirmDeleteGroup, LanguageResources.DeleteGroup, MessageBoxButton.YesNo);
                 if (result == MessageBoxResult.Yes)
                 {
                     Credentials.DeleteAllFromGroup(this.Model.GroupSelected.ID);
@@ -345,7 +355,7 @@ namespace SecretPassword
             this.Model.ModifyCredential = !this.Model.ModifyCredential;
         }
 
-        private void BtnCredentialShare_Click(object sender, RoutedEventArgs e)
+        private void ShowHideStreamToShare(object sender, RoutedEventArgs e)
         {
             if (this.CheckLockProgram())
                 return;
@@ -356,7 +366,7 @@ namespace SecretPassword
                 string hash = Credentials.Export(this.Model.CredentialSelected.ID);
                 this.Model.ShareCredentialString = hash;
             }
-            this.Model.ShareCredential = !this.Model.ShareCredential;
+            this.Model.ShareCredential = !this.Model.ShareCredential && Helpers.ConvalidateSalt(isRequired: false);
         }
 
         private void BtnCredentialImport_Click(object sender, RoutedEventArgs e)
@@ -367,7 +377,7 @@ namespace SecretPassword
             this.Reset();
             try
             {
-                this.Topmost = false;
+                
                 Credentials.Import(this.Model.GroupSelected);
             }
             catch (Exception ex)
@@ -377,7 +387,7 @@ namespace SecretPassword
             finally
             {
                 this.ReloadCredentialsSource();
-                this.Topmost = true;
+                
             }
         }
 
@@ -387,7 +397,7 @@ namespace SecretPassword
                 return;
 
             Credentials.CreateBackup();
-            MessageBox.Show($"Backup creato in {Path.Combine(Directory.GetCurrentDirectory(), "backup")}.{Environment.NewLine}Affinchè possa essere reimportato correttamente, è necessario che la Master Password non cambi.");
+            MessageBox.Show(string.Format(LanguageResources.SuccesfullyBackup, Path.Combine(Directory.GetCurrentDirectory(), "backup")));
         }
 
         private void BtnCredentialImportBackup_Click(object sender, RoutedEventArgs e)
@@ -395,10 +405,12 @@ namespace SecretPassword
             if (this.CheckLockProgram())
                 return;
 
+            
             int errors = Credentials.ImportBackup();
             string msgError = errors > 0 ? $" {errors} record non sono stati importati per errori." : string.Empty;
             MessageBox.Show($"Import completato.{msgError}");
             this.ReloadCredentialsSource();
+            
         }
 
         private void BtnCredentialImportChrome_Click(object sender, RoutedEventArgs e)
@@ -437,9 +449,30 @@ namespace SecretPassword
 
         private void BtnUnlock_Click(object sender, RoutedEventArgs e)
         {
-            this.Topmost = false;
+            
             this.Load();
             this.ReloadCredentialsSource();
+        }
+
+        private void ShowHideQrCode(object sender, RoutedEventArgs e)
+        {
+            if (this.CheckLockProgram())
+                return;
+
+            
+            this.Reset();
+            if (!this.Model.BuildQRCode)
+            {
+                var qrCode = Credentials.BuildQRCode(this.Model.CredentialSelected);
+                this.Model.QrCodeToShare = qrCode;
+            }
+            this.Model.BuildQRCode = !this.Model.BuildQRCode && Helpers.ConvalidateSalt(isRequired: false);
+            
+        }
+
+        private void CloseOperationPanel(object sender, RoutedEventArgs e)
+        {
+            this.Reset();
         }
     }
 
